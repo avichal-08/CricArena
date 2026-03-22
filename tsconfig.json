@@ -19,7 +19,9 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@repo/db": ["./drizzle/src/index.ts"],
+      "@repo/db/schema": ["./drizzle/src/db/schema.ts"]
     }
   },
   "include": [
