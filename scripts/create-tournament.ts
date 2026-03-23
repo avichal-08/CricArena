@@ -10,8 +10,8 @@ async function CreateTournament() {
       .insert(tournaments)
       .values({
         name: TOURNAMENT_NAME,
-        startDate: new Date('2026-03-26T14:00:00Z'),
-        endDate: new Date('2026-05-26T18:00:00Z'),
+        startDate: new Date('2026-03-28T14:00:00Z'),
+        endDate: new Date('2026-05-28T18:00:00Z'),
       })
       .returning();
 

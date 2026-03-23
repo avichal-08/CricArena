@@ -82,6 +82,7 @@ export const players = pgTable(
       .notNull()
       .references(() => teams.id, { onDelete: 'cascade' }),
     role: text('role').notNull(),
+    playingStyle: text('playing_style'),
   },
   (t) => ({
     teamIdIdx: index('player_team_id_idx').on(t.teamId),
