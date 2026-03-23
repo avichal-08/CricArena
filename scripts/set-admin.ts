@@ -32,6 +32,5 @@ async function SetAdmin(emails: string[]) {
 }
 
 const SetAdminEmails = ["avichal2018lko@gmail.com"];
-const currentAdmins = [];
 
 SetAdmin(SetAdminEmails);
