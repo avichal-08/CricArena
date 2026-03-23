@@ -8,6 +8,7 @@ import {
   unique,
   index,
   pgEnum,
+  boolean
 } from 'drizzle-orm/pg-core';
 import type { AdapterAccount } from 'next-auth/adapters';
 
@@ -15,6 +16,7 @@ export const userRoleEnum = pgEnum('user_role', ['user', 'admin']);
 export const lobbyTypeEnum = pgEnum('lobby_type', ['public', 'private']);
 export const lobbyRoleEnum = pgEnum('lobby_role', ['admin', 'member']);
 export const lobbyStatusEnum = pgEnum('lobby_status', ['pending', 'accepted', 'rejected']);
+export const lobbyModeEnum = pgEnum('lobby_mode', ['tournament', 'match']);
 
 export const users = pgTable('user', {
   id: text('id')
@@ -101,6 +103,7 @@ export const matches = pgTable(
     teamBId: text('team_b_id')
       .notNull()
       .references(() => teams.id, { onDelete: 'cascade' }),
+    isAbandoned: boolean('is_abandoned').default(false).notNull(),
     startTime: timestamp('start_time', { mode: 'date' }).notNull(),
   },
   (t) => ({
@@ -116,13 +119,24 @@ export const lobbies = pgTable(
       .$defaultFn(() => crypto.randomUUID()),
     name: text('name').notNull(),
     type: lobbyTypeEnum('type').default('public').notNull(),
+    mode: lobbyModeEnum('mode').default('tournament').notNull(),
+
+    tournamentId: text('tournament_id')
+      .notNull()
+      .references(() => tournaments.id, { onDelete: 'cascade' }),
+
+    matchId: text('match_id')
+      .references(() => matches.id, { onDelete: 'cascade' }),
+
     createdBy: text('created_by')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
   (t) => ({
     typeIdx: index('lobby_type_idx').on(t.type),
+    tournamentIdx: index('lobby_tournament_idx').on(t.tournamentId),
   })
 );
 
