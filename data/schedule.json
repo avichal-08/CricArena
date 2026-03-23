@@ -1,0 +1,22 @@
+[
+  { "teamA": "RCB", "teamB": "SRH", "time": "2026-03-28T14:00:00Z" },
+  { "teamA": "MI", "teamB": "KKR", "time": "2026-03-29T14:00:00Z" },
+  { "teamA": "RR", "teamB": "CSK", "time": "2026-03-30T14:00:00Z" },
+  { "teamA": "PBKS", "teamB": "GT", "time": "2026-03-31T14:00:00Z" },
+  { "teamA": "LSG", "teamB": "DC", "time": "2026-04-01T14:00:00Z" },
+  { "teamA": "KKR", "teamB": "SRH", "time": "2026-04-02T14:00:00Z" },
+  { "teamA": "CSK", "teamB": "PBKS", "time": "2026-04-03T14:00:00Z" },
+  { "teamA": "DC", "teamB": "MI", "time": "2026-04-04T10:00:00Z" },
+  { "teamA": "GT", "teamB": "RR", "time": "2026-04-04T14:00:00Z" },
+  { "teamA": "SRH", "teamB": "LSG", "time": "2026-04-05T10:00:00Z" },
+  { "teamA": "RCB", "teamB": "CSK", "time": "2026-04-05T14:00:00Z" },
+  { "teamA": "KKR", "teamB": "PBKS", "time": "2026-04-06T14:00:00Z" },
+  { "teamA": "RR", "teamB": "MI", "time": "2026-04-07T14:00:00Z" },
+  { "teamA": "DC", "teamB": "GT", "time": "2026-04-08T14:00:00Z" },
+  { "teamA": "KKR", "teamB": "LSG", "time": "2026-04-09T14:00:00Z" },
+  { "teamA": "RR", "teamB": "RCB", "time": "2026-04-10T14:00:00Z" },
+  { "teamA": "PBKS", "teamB": "SRH", "time": "2026-04-11T10:00:00Z" },
+  { "teamA": "CSK", "teamB": "DC", "time": "2026-04-11T14:00:00Z" },
+  { "teamA": "LSG", "teamB": "GT", "time": "2026-04-12T10:00:00Z" },
+  { "teamA": "MI", "teamB": "RCB", "time": "2026-04-12T14:00:00Z" }
+]
