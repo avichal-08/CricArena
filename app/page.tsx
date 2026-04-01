@@ -1,10 +1,12 @@
-"use client"
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/configs/authOptions";
 
-import { signIn, signOut, useSession } from "next-auth/react";
+import { SignInButton } from "@/components/SignInButton";
+import { SignOutButton } from "@/components/SignOutButton";
 
-export default function Home() {
-  const { data: session, status } = useSession();
-  console.log(session?.user.role)
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+  console.log(session?.user?.role)
   return (
     <div>
       {session && <div>
@@ -16,8 +18,8 @@ export default function Home() {
         {session.user.role}
       </div>
       }
-      <button onClick={() => signIn("google", { callbackUrl: "/" })}>Sign In</button>
-      <button onClick={() => signOut({ callbackUrl: "/" })}>Log Out</button>
+      <SignInButton/>
+      <SignOutButton/>
     </div>
   )
 }
