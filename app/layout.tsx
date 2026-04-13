@@ -3,8 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/authOptions";
+
 import { Providers } from "./providers";
-import { AppShell } from "../components/AppShell";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,9 +36,7 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers>
-          <AppShell user={session?.user}>
-            {children}
-          </AppShell>
+          {children}
         </Providers>
       </body>
     </html>
