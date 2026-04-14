@@ -20,7 +20,7 @@ const navItems = [
   { name: "Global Rank", href: "/leaderboard", icon: Globe },
 ];
 
-export function AppShell({ 
+export function SideBar({ 
   children, 
   user 
 }: { 

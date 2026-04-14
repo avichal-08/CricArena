@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/authOptions";
 import { redirect } from "next/navigation";
 
-import { AppShell } from "@/components/AppShell";
+import { SideBar } from "@/components/SideBar";
 
 export default async function DashboardLayout({ children }:
     {
@@ -15,8 +15,8 @@ export default async function DashboardLayout({ children }:
     }
 
     return (
-        <AppShell user={session?.user}>
+        <SideBar user={session?.user}>
             {children}
-        </AppShell>
+        </SideBar>
     )
 }
