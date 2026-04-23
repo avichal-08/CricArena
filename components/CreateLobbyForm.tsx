@@ -4,22 +4,14 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Swords, Globe, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { createLobbyAction } from "@/lib/actions/createLobby";
 
-type MatchProps = {
-  id: string;
-  tournamentId: string;
-  startTime: Date;
-  teamAShort: string;
-  teamBShort: string;
-};
+import type { MatchProps } from "@/types/MatchProps";
 
-export function CreateLobbyForm({ 
-  userId, 
-  upcomingMatches, 
-  activeTournamentId 
-}: { 
-  userId: string; 
+export function CreateLobbyForm({
+  upcomingMatches,
+  activeTournamentId
+}: {
+  userId: string;
   upcomingMatches: MatchProps[];
   activeTournamentId?: string;
 }) {
@@ -28,7 +20,8 @@ export function CreateLobbyForm({
 
   const nameRef = useRef<HTMLInputElement>(null);
   const matchRef = useRef<HTMLSelectElement>(null);
-  
+  const [error, setError] = useState<string | null>(null);
+
   const [mode, setMode] = useState<"tournament" | "match">("tournament");
   const [type, setType] = useState<"public" | "private">("private");
 
@@ -36,20 +29,45 @@ export function CreateLobbyForm({
     const name = nameRef.current?.value;
     const matchId = matchRef.current?.value;
 
-    if (!name || !activeTournamentId) return;
+    if (!name || !activeTournamentId) {
+      setError("Please fill all required fields.");
+      return;
+    }
+
+    setError(null);
 
     startTransition(async () => {
-      const lobbyId = await createLobbyAction({
-        name,
-        type,
-        mode,
-        userId,
-        matchId: mode === "match" ? matchId : null,
-        tournamentId: activeTournamentId,
-      });
+      try {
+        const res = await fetch("/api/lobby/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name,
+            type,
+            mode,
+            matchId: mode === "match" ? matchId : null,
+            tournamentId: activeTournamentId,
+          }),
+        });
 
-      if (lobbyId) {
-        router.push(`/lobby/${lobbyId}`);
+        const data = await res.json();
+
+        if (!res.ok || !data.success) {
+          if (res.status === 401) {
+            setError("You must be logged in.");
+            router.push("/");
+            return;
+          }
+
+          setError(data.message || "Something went wrong.");
+          return;
+        }
+
+        router.push(`/lobby/${data.lobbyId}`);
+      } catch (err) {
+        setError("Network error. Please try again.");
       }
     });
   };
@@ -67,7 +85,7 @@ export function CreateLobbyForm({
       </div>
 
       <div className="space-y-8">
-        
+
         <div className="space-y-2">
           <label className="text-sm font-medium text-zinc-400">Lobby Name</label>
           <input
@@ -82,8 +100,8 @@ export function CreateLobbyForm({
         <div className="space-y-4">
           <label className="text-sm font-medium text-zinc-400">Lobby Mode</label>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <div 
+
+            <div
               onClick={() => setMode("tournament")}
               className={`cursor-pointer rounded-xl border p-4 transition-all ${mode === "tournament" ? "border-white bg-zinc-900" : "border-zinc-800 bg-black hover:bg-zinc-900/50"}`}
             >
@@ -96,7 +114,7 @@ export function CreateLobbyForm({
               </div>
             </div>
 
-            <div 
+            <div
               onClick={() => setMode("match")}
               className={`cursor-pointer rounded-xl border p-4 transition-all ${mode === "match" ? "border-white bg-zinc-900" : "border-zinc-800 bg-black hover:bg-zinc-900/50"}`}
             >
@@ -126,7 +144,7 @@ export function CreateLobbyForm({
         <div className="space-y-4 pt-4 border-t border-zinc-800/60">
           <label className="text-sm font-medium text-zinc-400">Access Level</label>
           <div className="flex flex-col sm:flex-row gap-6">
-            
+
             <div onClick={() => setType("private")} className="flex items-center gap-3 cursor-pointer group">
               <div className={`w-4 h-4 rounded-full border transition-all ${type === "private" ? "border-white border-[4px]" : "border-zinc-700"}`}></div>
               <span className={`text-sm font-medium flex items-center gap-1.5 ${type === "private" ? "text-zinc-200" : "text-zinc-400"}`}>
@@ -144,8 +162,14 @@ export function CreateLobbyForm({
           </div>
         </div>
 
+        {error && (
+          <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+            {error}
+          </div>
+        )}
+
         <div className="pt-6">
-          <button 
+          <button
             onClick={handleSubmit}
             disabled={isPending}
             className="w-full h-12 rounded-xl bg-white text-black hover:bg-zinc-200 active:scale-[0.98] transition-all font-bold text-[15px] flex items-center justify-center"

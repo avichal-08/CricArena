@@ -14,7 +14,6 @@ export default async function CreateLobbyPage() {
   const teamA = alias(teams, "teamA");
   const teamB = alias(teams, "teamB");
 
-  // 1. Fetch data on the server
   const upcomingMatches = await db
     .select({
       id: matches.id,
@@ -31,7 +30,6 @@ export default async function CreateLobbyPage() {
 
   const [activeTournament] = await db.select().from(tournaments).limit(1);
 
-  // 2. Pass it to the purely interactive Client Component
   return (
     <div className="max-w-2xl mx-auto w-full p-6 md:p-10 pb-20">
       <CreateLobbyForm 

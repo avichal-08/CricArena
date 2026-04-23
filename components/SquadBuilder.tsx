@@ -6,7 +6,7 @@ import Image from "next/image";
 import { ArrowLeft, Check, Plus, Loader2, User, Swords, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { saveSquadAction } from "@/lib/actions/SquadBuilder";
+import { saveSquadAction } from "@/actions/SquadBuilder";
 
 type Player = { id: string; name: string; teamId: string; role: string };
 

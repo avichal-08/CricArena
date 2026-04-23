@@ -10,9 +10,13 @@ import { matches, teams } from "@repo/db/schema";
 
 import { authOptions } from "@/lib/configs/authOptions";
 
-export default async function Match() {
+export default async function Match({ params }: { params: { matchId: string } }) {
 
     const session = await getServerSession(authOptions);
+
+    const { matchId } = await params;
+
+    
 
     if (!session) {
         redirect("/")
@@ -20,7 +24,7 @@ export default async function Match() {
 
     const userId = session?.user?.id;
 
-    
+
 
     return (
         <div>
