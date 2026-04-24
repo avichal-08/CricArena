@@ -42,7 +42,7 @@ export default async function LobbyDashboard({ params }: { params: { lobbyId: st
 
   const [upcomingMatches, leaderboard, allMembers, joinRequests] = await Promise.all([
     db
-      .select({ id: matches.id, startTime: matches.startTime, teamAShort: teamA.shortName, teamBShort: teamB.shortName })
+      .select({ id: matches.id, startTime: matches.startTime, tournamentId: matches.tournamentId ,teamAShort: teamA.shortName, teamBShort: teamB.shortName })
       .from(matches)
       .innerJoin(teamA, eq(matches.teamAId, teamA.id))
       .innerJoin(teamB, eq(matches.teamBId, teamB.id))

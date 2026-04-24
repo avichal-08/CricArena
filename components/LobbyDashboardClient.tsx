@@ -12,16 +12,37 @@ import {
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { RequestsList } from "@/components/RequestsList";
 import { MembersList } from "@/components/MembersList";
+import { Leaderboard } from "@/components/Leaderboard";
+import { LobbyType } from "@/types/Lobby";
+import { MatchType } from "@/types/Match";
+import { LeaderboardMember, LeaderboardMemberDb } from "@/types/LeaderboardMember";
+import { MemberType } from "@/types/Member";
+import { JoinRequests } from "@/types/JoinRequests";
+import { formatLeaderboardData } from "@/utils/FormatLeaderboardData";
+
+type LobbyDashboardClientArguments = {
+  lobby: LobbyType,
+  isAdmin: boolean,
+  currentUserId: string,
+  upcomingMatches: MatchType[],
+  leaderboard: LeaderboardMemberDb[],
+  allMembers: MemberType[],
+  joinRequests: JoinRequests[]
+}
 
 export function LobbyDashboardClient({
   lobby,
   isAdmin,
   currentUserId,
   upcomingMatches,
+  leaderboard,
   allMembers,
   joinRequests
-}: any) {
+}: LobbyDashboardClientArguments) {
+
   const [activeTab, setActiveTab] = useState<"lobby" | "members" | "requests">("lobby");
+
+  const formattedLeaderboard: LeaderboardMember[] = formatLeaderboardData(leaderboard);
 
   return (
     <div className="max-w-6xl mx-auto w-full p-5 md:p-10 space-y-6 pb-24">
@@ -95,6 +116,7 @@ export function LobbyDashboardClient({
               <Trophy className="w-4 h-4" /> Standings
             </h2>
             <div className="rounded-xl border border-zinc-800 bg-black overflow-hidden min-h-[200px]">
+              <Leaderboard leaderboard={formattedLeaderboard} currentUserId={currentUserId} />
             </div>
           </div>
         </div>

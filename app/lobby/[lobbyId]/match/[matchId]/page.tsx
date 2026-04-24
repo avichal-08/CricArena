@@ -23,7 +23,7 @@ export default async function SquadBuilderPage({
     .from(lobbyMembers)
     .where(and(eq(lobbyMembers.lobbyId, lobbyId), eq(lobbyMembers.userId, userId)));
 
-  const membershipStatus = membership?.status
+  const membershipStatus = membership?.status;
 
   if (membershipStatus !== "accepted") {
     return (

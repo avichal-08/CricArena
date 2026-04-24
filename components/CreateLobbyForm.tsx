@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Swords, Globe, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-import type { MatchProps } from "@/types/MatchProps";
+import type { MatchProps } from "@/types/Match";
 
 export function CreateLobbyForm({
   upcomingMatches,

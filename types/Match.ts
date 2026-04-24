@@ -1,4 +1,4 @@
-export type MatchProps = {
+export type MatchType = {
   id: string;
   tournamentId: string;
   startTime: Date;
