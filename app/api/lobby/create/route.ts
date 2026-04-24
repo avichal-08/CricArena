@@ -5,7 +5,6 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
     try {
-        console.log("inside api")
         const session = await getServerSession(authOptions);
 
         if (!session) {

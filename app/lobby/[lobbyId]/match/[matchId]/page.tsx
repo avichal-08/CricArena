@@ -2,7 +2,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/authOptions";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@repo/db";
-import { matches, lobbies, teams, players, matchEntries } from "@repo/db/schema";
+import { matches, lobbies, teams, players, matchEntries, lobbyMembers } from "@repo/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { SquadBuilder } from "@/components/SquadBuilder";
@@ -17,6 +17,21 @@ export default async function SquadBuilderPage({
   const userId = session.user.id;
 
   const { lobbyId, matchId } = await params;
+
+  const [membership] = await db
+    .select()
+    .from(lobbyMembers)
+    .where(and(eq(lobbyMembers.lobbyId, lobbyId), eq(lobbyMembers.userId, userId)));
+
+  const membershipStatus = membership?.status
+
+  if (membershipStatus !== "accepted") {
+    return (
+      <div>
+        "Not a member of the lobby"
+      </div>
+    );
+  }
 
   const [lobby] = await db.select().from(lobbies).where(eq(lobbies.id, lobbyId));
   if (!lobby) notFound();
@@ -62,9 +77,9 @@ export default async function SquadBuilderPage({
     <div className="max-w-6xl mx-auto w-full h-[calc(100vh-64px)] md:h-screen flex flex-col bg-black overflow-hidden">
       <SquadBuilder
         lobbyId={lobbyId}
-        match={match} 
-        players={availablePlayers} 
-        initialSelection={initialSelection} 
+        match={match}
+        players={availablePlayers}
+        initialSelection={initialSelection}
       />
     </div>
   );
