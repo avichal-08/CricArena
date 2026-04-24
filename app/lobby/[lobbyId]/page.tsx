@@ -3,7 +3,7 @@ import { authOptions } from "@/lib/configs/authOptions";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@repo/db";
 import { lobbies, lobbyMembers, users, matches, teams, matchEntries } from "@repo/db/schema";
-import { eq, and, gte, asc, desc } from "drizzle-orm";
+import { eq, and, gte, asc, desc, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import { JoinLobbyButton } from "@/components/JoinLobbyButton";
 import { LobbyDashboardClient } from "@/components/LobbyDashboardClient";
@@ -50,11 +50,14 @@ export default async function LobbyDashboard({ params }: { params: { lobbyId: st
       .orderBy(asc(matches.startTime)),
 
     db
-      .select({ id: matchEntries.id, score: matchEntries.score, userId: users.id, userName: users.name, userImage: users.image })
+      .select({ userId: users.id, userName: users.name, userImage: users.image,
+        score: sql<number>`cast(sum(${matchEntries.score}) as integer)`
+      })
       .from(matchEntries)
       .innerJoin(users, eq(matchEntries.userId, users.id))
       .where(eq(matchEntries.lobbyId, lobbyId))
-      .orderBy(desc(matchEntries.score)),
+      .groupBy(users.id, users.name, users.image)
+      .orderBy(desc(sql`sum(${matchEntries.score})`)),
 
     db
       .select({ memberId: lobbyMembers.id, userId: users.id, name: users.name, image: users.image, role: lobbyMembers.role })

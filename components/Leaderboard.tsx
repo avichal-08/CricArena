@@ -24,7 +24,7 @@ export function Leaderboard({ leaderboard, currentUserId }: LeaderboardArguments
 
                             <div>
                                 <span className="text-sm font-medium text-zinc-200">
-                                    {member.userName} {member.id === currentUserId && "(You)"}
+                                    {member.userName} {member.userId === currentUserId && "(You)"}
                                 </span>
                             </div>
                         </div>

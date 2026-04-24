@@ -1,6 +1,5 @@
 // 1. Define the fields that never change
 type BaseLeaderboardMember = {
-    id: string;
     score: number;
     userId: string;
 };

@@ -40,6 +40,10 @@ export function SquadBuilder({
   const selectedPlayers = players.filter((p) => selectedIds.includes(p.id));
   const isFull = selectedIds.length === 12;
 
+  // Calculate team counts
+  const teamACount = selectedPlayers.filter((p) => p.teamId === match.teamAId).length;
+  const teamBCount = selectedPlayers.filter((p) => p.teamId === match.teamBId).length;
+
   const roleCounts = {
     BAT: selectedPlayers.filter((p) => getPlayerCategory(p.role) === 'BAT').length,
     BOWL: selectedPlayers.filter((p) => getPlayerCategory(p.role) === 'BOWL').length,
@@ -48,13 +52,23 @@ export function SquadBuilder({
   };
 
   const hasAllRoles = roleCounts.BAT > 0 && roleCounts.BOWL > 0 && roleCounts.AR > 0 && roleCounts.WK > 0;
-  
   const isValidSquad = isFull && hasAllRoles;
 
   const togglePlayer = (playerId: string) => {
     setSelectedIds((prev) => {
+      // If already selected, remove them
       if (prev.includes(playerId)) return prev.filter((id) => id !== playerId);
+      
+      // If squad is full, don't allow adding more
       if (prev.length >= 12) return prev;
+
+      // Check the 7-player limit per team rule before adding
+      const playerToAdd = players.find(p => p.id === playerId);
+      if (!playerToAdd) return prev;
+      
+      if (playerToAdd.teamId === match.teamAId && teamACount >= 7) return prev;
+      if (playerToAdd.teamId === match.teamBId && teamBCount >= 7) return prev;
+
       return [...prev, playerId];
     });
   };
@@ -74,7 +88,6 @@ export function SquadBuilder({
 
   return (
     <div className="flex flex-col h-full w-full">
-      
       <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-zinc-800/60 bg-black shrink-0">
         <div className="flex items-center gap-4">
           <Link href={`/lobby/${lobbyId}`} className="text-zinc-500 hover:text-white transition-colors">
@@ -89,13 +102,29 @@ export function SquadBuilder({
         </div>
 
         <div className="flex items-center gap-4">
+          {/* Desktop Headers Info */}
           <div className="hidden md:flex flex-col items-end mr-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-zinc-500">Selected:</span>
-              <span className={`text-sm font-mono font-bold ${isFull ? 'text-green-500' : 'text-white'}`}>
-                {selectedIds.length}/12
-              </span>
+            <div className="flex items-center gap-4">
+              
+              {/* Team Breakdown Indicator */}
+              <div className="flex items-center gap-2 bg-zinc-900/50 px-3 py-1 rounded-full border border-zinc-800/60">
+                <span className="text-[11px] font-semibold text-zinc-400">
+                  {match.teamAShort} <span className={`ml-1 ${teamACount === 7 ? 'text-amber-500' : 'text-zinc-200'}`}>{teamACount}</span>
+                </span>
+                <span className="text-zinc-700 text-xs">|</span>
+                <span className="text-[11px] font-semibold text-zinc-400">
+                  {match.teamBShort} <span className={`ml-1 ${teamBCount === 7 ? 'text-amber-500' : 'text-zinc-200'}`}>{teamBCount}</span>
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-zinc-500">Selected:</span>
+                <span className={`text-sm font-mono font-bold ${isFull ? 'text-green-500' : 'text-white'}`}>
+                  {selectedIds.length}/12
+                </span>
+              </div>
             </div>
+
             {isFull && !hasAllRoles && (
               <span className="text-[10px] text-red-400 font-semibold flex items-center gap-1 mt-0.5">
                 <AlertCircle className="w-3 h-3" /> Missing required roles
@@ -115,9 +144,7 @@ export function SquadBuilder({
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        
         <div className="flex-1 flex flex-col border-r border-zinc-800/60 bg-black">
-          
           <div className="p-4 border-b border-zinc-800/60 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
             {roles.map((role) => {
               const isMissing = role !== "ALL" && roleCounts[role as keyof typeof roleCounts] === 0 && selectedIds.length > 8;
@@ -145,13 +172,19 @@ export function SquadBuilder({
                 const isSelected = selectedIds.includes(player.id);
                 const teamShort = player.teamId === match.teamAId ? match.teamAShort : match.teamBShort;
                 
+                // Determine if player is blocked by the 7-player rule
+                const isTeamLimitReached = !isSelected && (
+                  (player.teamId === match.teamAId && teamACount >= 7) ||
+                  (player.teamId === match.teamBId && teamBCount >= 7)
+                );
+
                 return (
                   <div 
                     key={player.id} 
-                    onClick={() => togglePlayer(player.id)}
-                    className={`flex items-center justify-between p-4 cursor-pointer transition-colors ${
+                    onClick={() => !isTeamLimitReached && togglePlayer(player.id)}
+                    className={`flex items-center justify-between p-4 transition-colors ${
                       isSelected ? "bg-blue-950/20" : "hover:bg-zinc-900/50"
-                    }`}
+                    } ${isTeamLimitReached ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
@@ -162,18 +195,25 @@ export function SquadBuilder({
                           {player.name}
                         </h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] font-bold text-zinc-500 uppercase">{teamShort}</span>
+                          <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-indigo-400" : "text-emerald-400"}`}>
+                            {teamShort}
+                          </span>
                           <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
                           <span className="text-[10px] font-medium text-zinc-400 uppercase">{getPlayerCategory(player.role)}</span>
                         </div>
                       </div>
                     </div>
                     
-                    <button className={`w-7 h-7 rounded-md flex items-center justify-center border transition-all ${
-                      isSelected 
-                        ? "bg-blue-600 border-blue-500 text-white" 
-                        : "bg-zinc-900 border-zinc-700 text-zinc-400"
-                    }`}>
+                    <button 
+                      disabled={isTeamLimitReached}
+                      className={`w-7 h-7 rounded-md flex items-center justify-center border transition-all ${
+                        isSelected 
+                          ? "bg-blue-600 border-blue-500 text-white" 
+                          : isTeamLimitReached
+                            ? "bg-zinc-950 border-zinc-800 text-zinc-700"
+                            : "bg-zinc-900 border-zinc-700 text-zinc-400"
+                      }`}
+                    >
                       {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
                     </button>
                   </div>
@@ -201,7 +241,11 @@ export function SquadBuilder({
                   <div key={player.id} className="flex items-center justify-between p-3 rounded-md border border-zinc-800 bg-zinc-900/30">
                      <div className="flex flex-col">
                         <span className="text-sm font-medium text-zinc-200">{player.name}</span>
-                        <span className="text-[10px] text-zinc-500 font-bold uppercase">{getPlayerCategory(player.role)}</span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-[10px] text-zinc-500 font-bold uppercase">{getPlayerCategory(player.role)}</span>
+                          <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
+                          <span className="text-[10px] text-zinc-500 font-bold uppercase">{player.teamId === match.teamAId ? match.teamAShort : match.teamBShort}</span>
+                        </div>
                      </div>
                      <button onClick={() => togglePlayer(player.id)} className="text-zinc-500 hover:text-red-400 transition-colors p-1">
                        <MinusIcon className="w-4 h-4" />
@@ -212,23 +256,39 @@ export function SquadBuilder({
             )}
           </ScrollArea>
         </div>
-
       </div>
       
-      <div className="lg:hidden p-3 border-t border-zinc-800/60 bg-black shrink-0 flex justify-between items-center z-10 pb-safe">
-        <div className="flex flex-col">
-          <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Selected</span>
-          <span className={`text-lg font-mono font-black ${isFull ? 'text-green-500' : 'text-white'}`}>
-             {selectedIds.length} <span className="text-zinc-600 text-sm">/ 12</span>
-          </span>
+      {/* Mobile Footer */}
+      <div className="lg:hidden p-3 border-t border-zinc-800/60 bg-black shrink-0 flex flex-col gap-3 z-10 pb-safe">
+        
+        {/* Mobile Team Breakdown */}
+        <div className="flex items-center justify-between px-1">
+           <div className="flex gap-4">
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase">{match.teamAShort}</span>
+                <span className={`text-sm font-mono font-bold ${teamACount === 7 ? 'text-amber-500' : 'text-zinc-300'}`}>{teamACount}/7</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-[10px] font-bold text-zinc-500 uppercase">{match.teamBShort}</span>
+                <span className={`text-sm font-mono font-bold ${teamBCount === 7 ? 'text-amber-500' : 'text-zinc-300'}`}>{teamBCount}/7</span>
+              </div>
+           </div>
+           
+           <div className="flex flex-col items-end">
+             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</span>
+             <span className={`text-lg leading-none font-mono font-black ${isFull ? 'text-green-500' : 'text-white'}`}>
+                {selectedIds.length} <span className="text-zinc-600 text-sm">/ 12</span>
+             </span>
+           </div>
         </div>
-        <div className="flex gap-1.5">
+
+        <div className="flex justify-between gap-1.5">
           {roles.filter(r => r !== "ALL").map(role => {
              const count = roleCounts[role as keyof typeof roleCounts];
              const isError = count === 0 && isFull;
              
              return (
-               <div key={role} className={`flex flex-col items-center rounded px-2 py-1 border transition-colors ${isError ? 'bg-red-950/50 border-red-900' : 'bg-zinc-900 border-zinc-800'}`}>
+               <div key={role} className={`flex-1 flex flex-col items-center justify-center rounded px-2 py-1.5 border transition-colors ${isError ? 'bg-red-950/50 border-red-900' : 'bg-zinc-900 border-zinc-800'}`}>
                  <span className={`text-[9px] font-bold ${isError ? 'text-red-400' : 'text-zinc-500'}`}>{role}</span>
                  <span className={`text-xs font-mono font-semibold ${isError ? 'text-red-400' : 'text-zinc-300'}`}>{count}</span>
                </div>
