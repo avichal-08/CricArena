@@ -9,7 +9,7 @@ import {
   History, 
   Globe, 
   LogOut, 
-  MoreVertical 
+  Terminal
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -18,6 +18,7 @@ const navItems = [
   { name: "Active Lobbies", href: "/lobby/active", icon: Trophy },
   { name: "Past Lobbies", href: "/lobby/past", icon: History },
   { name: "Global Rank", href: "/global-leaderboard", icon: Globe },
+  { name: "Admin Panel", href: "/admin/scoring", icon: Terminal, adminOnly: true }, // 👈 New Admin Route
 ];
 
 export function SideBar({ 
@@ -28,7 +29,6 @@ export function SideBar({
   user?: any;
 }) {
   const pathname = usePathname();
-
   const router = useRouter();
 
   return (
@@ -43,15 +43,20 @@ export function SideBar({
 
         <nav className="flex-1 px-4 space-y-1 mt-4">
           {navItems.map((item) => {
+            if (item.adminOnly && user?.role !== "admin") return null;
+
             const isActive = pathname === item.href;
+            
+            const isAdminBtn = item.adminOnly;
+
             return (
               <Link key={item.name} href={item.href}>
                 <div className={`flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
                   isActive 
-                    ? "bg-zinc-900 text-white" 
+                    ? isAdminBtn ? "bg-emerald-500/10 text-emerald-500" : "bg-zinc-900 text-white" 
                     : "text-zinc-400 hover:bg-zinc-900/50 hover:text-white"
                 }`}>
-                  <item.icon className={`w-4 h-4 ${isActive ? "text-white" : "text-zinc-500"}`} />
+                  <item.icon className={`w-4 h-4 ${isActive ? (isAdminBtn ? "text-emerald-500" : "text-white") : "text-zinc-500"}`} />
                   {item.name}
                 </div>
               </Link>
@@ -68,11 +73,11 @@ export function SideBar({
                   <AvatarFallback className="bg-zinc-800 text-xs">{user.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
                 <div className="flex flex-col" onClick={()=>router.push("/profile")}>
-                  <span className="text-sm font-medium text-zinc-200">{user.name}</span>
-                  <span className="text-xs text-zinc-500">Player</span>
+                  <span className="text-sm font-medium text-zinc-200 line-clamp-1">{user.name}</span>
+                  <span className="text-xs text-zinc-500 capitalize">{user.role || "Player"}</span>
                 </div>
               </div>
-              <button onClick={() => signOut()} className="text-zinc-500 hover:text-white transition-colors p-1">
+              <button onClick={() => signOut()} className="text-zinc-500 hover:text-red-400 transition-colors p-1">
                 <LogOut className="w-4 h-4" />
               </button>
             </div>
@@ -94,7 +99,7 @@ export function SideBar({
             <span className="font-bold text-[17px] tracking-tight">CricArena</span>
           </div>
           {user && (
-            <button onClick={() => signOut()} className="active:scale-95 transition-transform">
+            <button onClick={() => router.push("/profile")} className="active:scale-95 transition-transform">
               <Avatar className="w-8 h-8 border border-zinc-700">
                 <AvatarImage src={user.image} />
                 <AvatarFallback className="bg-zinc-800 text-xs">{user.name?.charAt(0)}</AvatarFallback>
@@ -110,13 +115,25 @@ export function SideBar({
         <nav className="md:hidden fixed bottom-0 left-0 right-0 border-t border-zinc-800/60 bg-black/90 backdrop-blur-lg pb-safe z-50">
           <div className="flex items-center justify-around p-2">
             {navItems.map((item) => {
+              if (item.adminOnly && user?.role !== "admin") return null;
+
               const isActive = pathname === item.href;
+              const isAdminBtn = item.adminOnly;
+
               return (
-                <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 p-2 w-16">
-                  <div className={`p-1.5 rounded-full transition-colors ${isActive ? "bg-zinc-800 text-white" : "text-zinc-500"}`}>
+                <Link key={item.name} href={item.href} className="flex flex-col items-center gap-1 p-2 min-w-[4rem]">
+                  <div className={`p-1.5 rounded-full transition-colors ${
+                    isActive 
+                      ? isAdminBtn ? "bg-emerald-500/20 text-emerald-400" : "bg-zinc-800 text-white" 
+                      : "text-zinc-500"
+                  }`}>
                     <item.icon className="w-5 h-5" strokeWidth={isActive ? 2.5 : 2} />
                   </div>
-                  <span className={`text-[10px] font-medium transition-colors ${isActive ? "text-white" : "text-zinc-500"}`}>
+                  <span className={`text-[10px] font-medium transition-colors ${
+                    isActive 
+                      ? isAdminBtn ? "text-emerald-500" : "text-white" 
+                      : "text-zinc-500"
+                  }`}>
                     {item.name.split(' ')[0]}
                   </span>
                 </Link>

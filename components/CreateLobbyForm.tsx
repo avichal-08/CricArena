@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Trophy, Swords, Globe, Lock, Loader2 } from "lucide-react";
 import Link from "next/link";
 
-import type { MatchProps } from "@/types/Match";
+import type { MatchType } from "@/types/Match";
 
 export function CreateLobbyForm({
   upcomingMatches,
   activeTournamentId
 }: {
   userId: string;
-  upcomingMatches: MatchProps[];
+  upcomingMatches: MatchType[];
   activeTournamentId?: string;
 }) {
   const router = useRouter();
