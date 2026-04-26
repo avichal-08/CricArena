@@ -15,8 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const navItems = [
   { name: "Home", href: "/home", icon: Home },
-  { name: "Active Lobbies", href: "/lobbies/active", icon: Trophy },
-  { name: "Past Lobbies", href: "/lobbies/past", icon: History },
+  { name: "Active Lobbies", href: "/lobby/active", icon: Trophy },
+  { name: "Past Lobbies", href: "/lobby/past", icon: History },
   { name: "Global Rank", href: "/global-leaderboard", icon: Globe },
 ];
 

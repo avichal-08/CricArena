@@ -1,9 +1,8 @@
 import { getServerSession } from "next-auth";
-import { redirect } from "next/navigation";
 import { authOptions } from "@/lib/configs/authOptions";
 import { db } from "@repo/db";
-import { matches, lobbies, teams, matchEntries } from "@repo/db/schema";
-import { eq, gte, asc, or } from "drizzle-orm";
+import { matches, lobbies, teams, lobbyMembers, tournaments } from "@repo/db/schema";
+import { eq, gte, asc, or, and } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { UpcomingMatches } from "@/components/UpcomingMatches";
@@ -13,7 +12,6 @@ import { CreateLobbyButton } from "@/components/CreateLobbyButton";
 
 export default async function HomePage() {
   const session = await getServerSession(authOptions);
-
   const userId = session?.user?.id;
 
   const teamA = alias(teams, "teamA");
@@ -35,30 +33,46 @@ export default async function HomePage() {
         .orderBy(asc(matches.startTime))
         .limit(5),
 
-      db.select().from(lobbies).where(eq(lobbies.type, "public")).limit(5),
+      db
+        .select()
+        .from(lobbies)
+        .where(eq(lobbies.type, "public"))
+        .limit(5),
 
       userId
         ? db
-            .selectDistinct({
-              id: lobbies.id,
-              name: lobbies.name,
-              mode: lobbies.mode,
-            })
-            .from(lobbies)
-            .leftJoin(matchEntries, eq(lobbies.id, matchEntries.lobbyId))
-            .where(or(eq(lobbies.createdBy, userId), eq(matchEntries.userId, userId)))
+          .select({
+            id: lobbies.id,
+            name: lobbies.name,
+            mode: lobbies.mode,
+          })
+          .from(lobbyMembers)
+          .innerJoin(lobbies, eq(lobbyMembers.lobbyId, lobbies.id))
+          .leftJoin(matches, eq(lobbies.matchId, matches.id))
+          .leftJoin(tournaments, eq(lobbies.tournamentId, tournaments.id))
+          .where(
+            and(
+              eq(lobbyMembers.userId, userId),
+              eq(lobbyMembers.status, "accepted"),
+              or(
+                and(eq(lobbies.mode, "match"), gte(matches.startTime, new Date())),
+                and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, new Date()))
+              )
+            )
+          )
+          .limit(5)
         : Promise.resolve([]),
     ]);
 
     return (
       <div className="max-w-5xl mx-auto w-full p-5 md:p-8 space-y-10">
-        
+
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-zinc-800/60 pb-6">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight text-zinc-100">Overview</h1>
-            <p className="text-sm text-zinc-500 mt-1">Manage your lobbies and predict upcoming fixtures.</p>
+            <p className="text-sm text-zinc-500 mt-1">Manage your lobbies and predict upcoming fixtures</p>
           </div>
-          <CreateLobbyButton/>
+          <CreateLobbyButton />
         </div>
 
         <UpcomingMatches matches={upcomingMatches} />
@@ -67,14 +81,15 @@ export default async function HomePage() {
           {userId && myLobbies.length > 0 && <MyLobbies lobbies={myLobbies} />}
           <GlobalLobbies lobbies={globalLobbies} />
         </div>
-        
+
       </div>
     );
   } catch (error) {
+    console.error("Dashboard Fetch Error:", error);
     return (
       <div className="max-w-5xl mx-auto p-5 mt-10">
         <div className="p-4 rounded-md bg-red-950/20 border border-red-900/30 text-red-500 text-sm font-medium">
-          Failed to load dashboard data. Please check your database connection.
+          Failed to load dashboard data
         </div>
       </div>
     );
