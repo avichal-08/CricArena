@@ -1,11 +1,11 @@
 import Link from "next/link";
 
-export function GlobalLobbies({ lobbies }: { lobbies: any[] }) {
+export function CampusLobby({ lobbies }: { lobbies: any[] }) {
   if (lobbies.length === 0) return null;
 
   return (
     <section>
-      <h2 className="text-sm font-medium text-zinc-400 mb-4">Public Lobbies</h2>
+      <h2 className="text-sm font-medium text-zinc-400 mb-4">Campus Lobby</h2>
       <div className="flex flex-col gap-2">
         {lobbies.map((lobby) => (
           <Link key={lobby.id} href={`/lobby/${lobby.id}`} className="group">

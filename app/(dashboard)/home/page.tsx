@@ -2,12 +2,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/authOptions";
 import { db } from "@repo/db";
 import { matches, lobbies, teams, lobbyMembers, tournaments } from "@repo/db/schema";
-import { eq, gte, asc, or, and } from "drizzle-orm";
+import { eq, gte, asc, or, and, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
 import { UpcomingMatches } from "@/components/UpcomingMatches";
 import { MyLobbies } from "@/components/MyLobbies";
-import { GlobalLobbies } from "@/components/GlobalLobby";
+import { CampusLobby } from "@/components/CampusLobby";
 import { CreateLobbyButton } from "@/components/CreateLobbyButton";
 
 export default async function HomePage() {
@@ -17,8 +17,13 @@ export default async function HomePage() {
   const teamA = alias(teams, "teamA");
   const teamB = alias(teams, "teamB");
 
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
+
+
   try {
-    const [upcomingMatches, globalLobbies, myLobbies] = await Promise.all([
+    const [upcomingMatches, campusLobby, myLobbies] = await Promise.all([
       db
         .select({
           id: matches.id,
@@ -36,31 +41,39 @@ export default async function HomePage() {
       db
         .select()
         .from(lobbies)
-        .where(eq(lobbies.type, "public"))
-        .limit(5),
+        .where(eq(lobbies.id, "d2e47eb4-d798-49e4-897a-2b3e8ff43912")),
 
       userId
         ? db
           .select({
             id: lobbies.id,
             name: lobbies.name,
+            type: lobbies.type,
             mode: lobbies.mode,
+            role: lobbyMembers.role,
+            matchStartTime: matches.startTime,
+            teamAShort: teamA.shortName,
+            teamBShort: teamB.shortName,
+            tournamentName: tournaments.name,
+            tournamentEndDate: tournaments.endDate,
           })
           .from(lobbyMembers)
           .innerJoin(lobbies, eq(lobbyMembers.lobbyId, lobbies.id))
           .leftJoin(matches, eq(lobbies.matchId, matches.id))
           .leftJoin(tournaments, eq(lobbies.tournamentId, tournaments.id))
+          .leftJoin(teamA, eq(matches.teamAId, teamA.id))
+          .leftJoin(teamB, eq(matches.teamBId, teamB.id))
           .where(
             and(
               eq(lobbyMembers.userId, userId),
               eq(lobbyMembers.status, "accepted"),
               or(
-                and(eq(lobbies.mode, "match"), gte(matches.startTime, new Date())),
-                and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, new Date()))
+                and(eq(lobbies.mode, "match"), gte(matches.startTime, startOfToday)),
+                and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, startOfToday))
               )
             )
           )
-          .limit(5)
+          .orderBy(desc(lobbies.createdAt))
         : Promise.resolve([]),
     ]);
 
@@ -79,7 +92,7 @@ export default async function HomePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {userId && myLobbies.length > 0 && <MyLobbies lobbies={myLobbies} />}
-          <GlobalLobbies lobbies={globalLobbies} />
+          <CampusLobby lobbies={campusLobby} />
         </div>
 
       </div>

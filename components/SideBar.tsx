@@ -9,7 +9,8 @@ import {
   History, 
   Globe, 
   LogOut, 
-  Terminal
+  Terminal,
+  Users
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -17,8 +18,9 @@ const navItems = [
   { name: "Home", href: "/home", icon: Home },
   { name: "Active Lobbies", href: "/lobby/active", icon: Trophy },
   { name: "Past Lobbies", href: "/lobby/past", icon: History },
+  { name: "Public Lobbies", href: "/lobby/public", icon: Users },
   { name: "Global Rank", href: "/global-leaderboard", icon: Globe },
-  { name: "Admin Panel", href: "/admin/scoring", icon: Terminal, adminOnly: true }, // 👈 New Admin Route
+  { name: "Admin Panel", href: "/admin/scoring", icon: Terminal, adminOnly: true },
 ];
 
 export function SideBar({ 

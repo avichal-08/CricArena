@@ -17,6 +17,9 @@ export default async function ActiveLobbiesPage() {
   const teamA = alias(teams, "teamA");
   const teamB = alias(teams, "teamB");
 
+  const startOfToday = new Date();
+  startOfToday.setHours(0, 0, 0, 0);
+
   const activeLobbies = await db
     .select({
       id: lobbies.id,
@@ -41,8 +44,8 @@ export default async function ActiveLobbiesPage() {
         eq(lobbyMembers.userId, userId),
         eq(lobbyMembers.status, "accepted"),
         or(
-          and(eq(lobbies.mode, "match"), gte(matches.startTime, new Date())),
-          and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, new Date()))
+          and(eq(lobbies.mode, "match"), gte(matches.startTime, startOfToday)),
+          and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, startOfToday))
         )
       )
     )
@@ -50,7 +53,7 @@ export default async function ActiveLobbiesPage() {
 
   return (
     <div className="max-w-6xl mx-auto w-full p-6 md:p-10 space-y-8 pb-24">
-      
+
       <div className="flex items-center gap-4 border-b border-zinc-800/60 pb-6">
         <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-center shadow-lg">
           <Activity className="w-6 h-6 text-green-500" />
@@ -79,7 +82,7 @@ export default async function ActiveLobbiesPage() {
           {activeLobbies.map((lobby) => (
             <Link key={lobby.id} href={`/lobby/${lobby.id}`}>
               <div className="group flex flex-col justify-between h-full p-5 rounded-2xl border border-zinc-800 bg-black hover:border-zinc-600 transition-all active:scale-[0.98]">
-                
+
                 <div className="space-y-4">
                   <div className="flex items-start justify-between">
                     <h3 className="text-lg font-bold text-white line-clamp-1 pr-4">{lobby.name}</h3>
