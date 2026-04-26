@@ -1,20 +1,14 @@
 "use server";
 
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/configs/authOptions";
-import { db } from "@repo/db";
-import { matchEntries, players } from "@repo/db/schema";
 import { revalidatePath } from "next/cache";
 import { inArray } from "drizzle-orm";
 
-const getPlayerCategory = (role: string) => {
-  const r = role.toLowerCase();
-  if (r.includes('bat')) return 'BAT';
-  if (r.includes('bowl')) return 'BOWL';
-  if (r.includes('wk') || r.includes('wicket')) return 'WK';
-  if (r.includes('all') || r === 'ar') return 'AR';
-  return 'OTHER';
-};
+import { authOptions } from "@/lib/configs/authOptions";
+import { db } from "@repo/db";
+import { matchEntries, players } from "@repo/db/schema";
+import { getPlayerCategory } from "@/utils/PlayerCategory";
+
 
 export async function saveSquadAction(lobbyId: string, matchId: string, playerIds: string[]) {
   const session = await getServerSession(authOptions);
@@ -40,6 +34,17 @@ export async function saveSquadAction(lobbyId: string, matchId: string, playerId
 
   if (!hasAllRoles) {
     throw new Error("Invalid Squad: Must select at least one Batsman, Bowler, All-Rounder, and Wicketkeeper.");
+  }
+
+  const teamCounts = selectedPlayers.reduce((acc, player) => {
+    acc[player.teamId] = (acc[player.teamId] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const exceedsTeamLimit = Object.values(teamCounts).some(count => count > 7);
+
+  if (exceedsTeamLimit) {
+    throw new Error("Invalid Squad: Cannot select more than 7 players from a single team.");
   }
 
   await db

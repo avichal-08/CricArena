@@ -42,6 +42,8 @@ export function LobbyDashboardClient({
 
   const [activeTab, setActiveTab] = useState<"lobby" | "members" | "requests">("lobby");
 
+  const lobbyMode: string = lobby.mode;
+  const lobbyId: string = lobby.id;
   const formattedLeaderboard: LeaderboardMember[] = formatLeaderboardData(leaderboard);
 
   return (
@@ -116,7 +118,7 @@ export function LobbyDashboardClient({
               <Trophy className="w-4 h-4" /> Standings
             </h2>
             <div className="rounded-xl border border-zinc-800 bg-black overflow-hidden min-h-[200px]">
-              <Leaderboard leaderboard={formattedLeaderboard} currentUserId={currentUserId} />
+              <Leaderboard leaderboard={formattedLeaderboard} currentUserId={currentUserId} lobbyMode={lobbyMode} lobbyId={lobbyId}/>
             </div>
           </div>
         </div>

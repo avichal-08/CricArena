@@ -1,17 +1,28 @@
+"use client"
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import type { LeaderboardMember } from "@/types/LeaderboardMember";
+import { useRouter } from "next/navigation";
 
 type LeaderboardArguments = {
-    leaderboard: LeaderboardMember[];
-    currentUserId?: string;
+    leaderboard: LeaderboardMember[],
+    currentUserId?: string,
+    lobbyMode: string,
+    lobbyId: string
 };
 
-export function Leaderboard({ leaderboard, currentUserId }: LeaderboardArguments) {
+export function Leaderboard({ leaderboard, currentUserId, lobbyMode, lobbyId }: LeaderboardArguments) {
+
+    const router = useRouter();
+    const isTournament:boolean = lobbyMode === "tournament";
+
     return (
         <div className="rounded-xl border border-zinc-800 bg-black overflow-hidden shadow-2xl shadow-black">
             <div className="divide-y divide-zinc-900">
                 {leaderboard.map((member, index) => (
-                    <div key={index} className="p-4 flex items-center justify-between">
+                    <div key={index} onClick={() => {
+                        isTournament ? router.push(`/lobby/${lobbyId}/${member.userId}`) : router.push(`/lobby/${lobbyId}/single/${member.userId}`)
+                    }} className="p-4 flex items-center justify-between cursor-pointer">
                         <div className="flex items-center gap-3">
                             <span className="text-sm font-bold text-zinc-500 w-5 text-center">
                                 {index + 1}

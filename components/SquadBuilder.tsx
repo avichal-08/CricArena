@@ -40,7 +40,6 @@ export function SquadBuilder({
   const selectedPlayers = players.filter((p) => selectedIds.includes(p.id));
   const isFull = selectedIds.length === 12;
 
-  // Calculate team counts
   const teamACount = selectedPlayers.filter((p) => p.teamId === match.teamAId).length;
   const teamBCount = selectedPlayers.filter((p) => p.teamId === match.teamBId).length;
 
@@ -56,13 +55,10 @@ export function SquadBuilder({
 
   const togglePlayer = (playerId: string) => {
     setSelectedIds((prev) => {
-      // If already selected, remove them
       if (prev.includes(playerId)) return prev.filter((id) => id !== playerId);
       
-      // If squad is full, don't allow adding more
       if (prev.length >= 12) return prev;
 
-      // Check the 7-player limit per team rule before adding
       const playerToAdd = players.find(p => p.id === playerId);
       if (!playerToAdd) return prev;
       
@@ -102,11 +98,9 @@ export function SquadBuilder({
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Desktop Headers Info */}
           <div className="hidden md:flex flex-col items-end mr-2">
             <div className="flex items-center gap-4">
               
-              {/* Team Breakdown Indicator */}
               <div className="flex items-center gap-2 bg-zinc-900/50 px-3 py-1 rounded-full border border-zinc-800/60">
                 <span className="text-[11px] font-semibold text-zinc-400">
                   {match.teamAShort} <span className={`ml-1 ${teamACount === 7 ? 'text-amber-500' : 'text-zinc-200'}`}>{teamACount}</span>
@@ -172,7 +166,6 @@ export function SquadBuilder({
                 const isSelected = selectedIds.includes(player.id);
                 const teamShort = player.teamId === match.teamAId ? match.teamAShort : match.teamBShort;
                 
-                // Determine if player is blocked by the 7-player rule
                 const isTeamLimitReached = !isSelected && (
                   (player.teamId === match.teamAId && teamACount >= 7) ||
                   (player.teamId === match.teamBId && teamBCount >= 7)
@@ -258,10 +251,8 @@ export function SquadBuilder({
         </div>
       </div>
       
-      {/* Mobile Footer */}
       <div className="lg:hidden p-3 border-t border-zinc-800/60 bg-black shrink-0 flex flex-col gap-3 z-10 pb-safe">
         
-        {/* Mobile Team Breakdown */}
         <div className="flex items-center justify-between px-1">
            <div className="flex gap-4">
               <div className="flex flex-col">
