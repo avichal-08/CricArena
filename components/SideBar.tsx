@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { 
   Home, 
@@ -28,6 +28,8 @@ export function SideBar({
   user?: any;
 }) {
   const pathname = usePathname();
+
+  const router = useRouter();
 
   return (
     <div className="flex h-screen w-full bg-black text-zinc-50 font-sans overflow-hidden">
@@ -65,7 +67,7 @@ export function SideBar({
                   <AvatarImage src={user.image} />
                   <AvatarFallback className="bg-zinc-800 text-xs">{user.name?.charAt(0)}</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col">
+                <div className="flex flex-col" onClick={()=>router.push("/profile")}>
                   <span className="text-sm font-medium text-zinc-200">{user.name}</span>
                   <span className="text-xs text-zinc-500">Player</span>
                 </div>
