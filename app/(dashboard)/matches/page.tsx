@@ -13,10 +13,6 @@ export default async function Matches() {
 
     const session = await getServerSession(authOptions);
 
-    if (!session) {
-        redirect("/")
-    }
-
     const userId = session?.user?.id;
 
     const teamA = alias(teams, "teamA");

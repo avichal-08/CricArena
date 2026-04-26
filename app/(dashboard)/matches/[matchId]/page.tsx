@@ -16,12 +16,6 @@ export default async function Match({ params }: { params: { matchId: string } })
 
     const { matchId } = await params;
 
-    
-
-    if (!session) {
-        redirect("/")
-    }
-
     const userId = session?.user?.id;
 
 

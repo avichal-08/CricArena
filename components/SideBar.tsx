@@ -17,7 +17,7 @@ const navItems = [
   { name: "Home", href: "/home", icon: Home },
   { name: "Active Lobbies", href: "/lobbies/active", icon: Trophy },
   { name: "Past Lobbies", href: "/lobbies/past", icon: History },
-  { name: "Global Rank", href: "/leaderboard", icon: Globe },
+  { name: "Global Rank", href: "/global-leaderboard", icon: Globe },
 ];
 
 export function SideBar({ 

@@ -10,10 +10,7 @@ export default async function DashboardLayout({ children }:
     }) {
 
     const session = await getServerSession(authOptions);
-    if (!session) {
-        redirect("/");
-    }
-
+    if (!session) redirect("/api/auth/signin");
     return (
         <SideBar user={session?.user}>
             {children}
