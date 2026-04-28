@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Check, Plus, Loader2, User, Swords, AlertCircle } from "lucide-react";
+import { ArrowLeft, Check, Plus, Loader2, Swords, AlertCircle, X } from "lucide-react";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { saveSquadAction } from "@/actions/SquadBuilder";
@@ -12,12 +12,20 @@ type Player = { id: string; name: string; teamId: string; role: string };
 
 export const getPlayerCategory = (role: string) => {
   const r = role.toLowerCase();
-  if (r.includes('bat')) return 'BAT';
-  if (r.includes('bowl')) return 'BOWL';
-  if (r.includes('wk') || r.includes('wicket')) return 'WK';
-  if (r.includes('all') || r === 'ar') return 'AR';
-  return 'OTHER';
+  if (r.includes("bat")) return "BAT";
+  if (r.includes("bowl")) return "BOWL";
+  if (r.includes("wk") || r.includes("wicket")) return "WK";
+  if (r.includes("all") || r === "ar") return "AR";
+  return "OTHER";
 };
+
+function MinusIcon(props: any) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+      <path d="M5 12h14" />
+    </svg>
+  );
+}
 
 export function SquadBuilder({
   lobbyId,
@@ -44,10 +52,10 @@ export function SquadBuilder({
   const teamBCount = selectedPlayers.filter((p) => p.teamId === match.teamBId).length;
 
   const roleCounts = {
-    BAT: selectedPlayers.filter((p) => getPlayerCategory(p.role) === 'BAT').length,
-    BOWL: selectedPlayers.filter((p) => getPlayerCategory(p.role) === 'BOWL').length,
-    AR: selectedPlayers.filter((p) => getPlayerCategory(p.role) === 'AR').length,
-    WK: selectedPlayers.filter((p) => getPlayerCategory(p.role) === 'WK').length,
+    BAT: selectedPlayers.filter((p) => getPlayerCategory(p.role) === "BAT").length,
+    BOWL: selectedPlayers.filter((p) => getPlayerCategory(p.role) === "BOWL").length,
+    AR: selectedPlayers.filter((p) => getPlayerCategory(p.role) === "AR").length,
+    WK: selectedPlayers.filter((p) => getPlayerCategory(p.role) === "WK").length,
   };
 
   const hasAllRoles = roleCounts.BAT > 0 && roleCounts.BOWL > 0 && roleCounts.AR > 0 && roleCounts.WK > 0;
@@ -56,15 +64,11 @@ export function SquadBuilder({
   const togglePlayer = (playerId: string) => {
     setSelectedIds((prev) => {
       if (prev.includes(playerId)) return prev.filter((id) => id !== playerId);
-      
       if (prev.length >= 12) return prev;
-
-      const playerToAdd = players.find(p => p.id === playerId);
+      const playerToAdd = players.find((p) => p.id === playerId);
       if (!playerToAdd) return prev;
-      
       if (playerToAdd.teamId === match.teamAId && teamACount >= 7) return prev;
       if (playerToAdd.teamId === match.teamBId && teamBCount >= 7) return prev;
-
       return [...prev, playerId];
     });
   };
@@ -83,44 +87,41 @@ export function SquadBuilder({
   });
 
   return (
-    <div className="flex flex-col h-full w-full">
-      <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-zinc-800/60 bg-black shrink-0">
-        <div className="flex items-center gap-4">
-          <Link href={`/lobby/${lobbyId}`} className="text-zinc-500 hover:text-white transition-colors">
-            <ArrowLeft className="w-5 h-5" />
+    <div className="flex flex-col h-full w-full bg-background">
+      <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b border-white/[0.05] bg-[oklch(0.10_0.007_38)] shrink-0">
+        <div className="flex items-center gap-3">
+          <Link href={`/lobby/${lobbyId}`} className="p-2 -ml-1 text-stone-500 hover:text-stone-300 hover:bg-white/[0.05] rounded-xl transition-all">
+            <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
-            <h1 className="text-lg font-semibold text-white tracking-tight">Build Squad</h1>
-            <p className="text-xs text-zinc-500 font-medium">
+            <h1 className="text-[15px] font-bold text-white">Build Your Squad</h1>
+            <p className="text-[11px] text-stone-500 font-medium">
               {match.teamAShort} vs {match.teamBShort}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="hidden md:flex flex-col items-end mr-2">
-            <div className="flex items-center gap-4">
-              
-              <div className="flex items-center gap-2 bg-zinc-900/50 px-3 py-1 rounded-full border border-zinc-800/60">
-                <span className="text-[11px] font-semibold text-zinc-400">
-                  {match.teamAShort} <span className={`ml-1 ${teamACount === 7 ? 'text-amber-500' : 'text-zinc-200'}`}>{teamACount}</span>
+        <div className="flex items-center gap-3">
+          <div className="hidden md:flex flex-col items-end">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 bg-white/[0.04] border border-white/[0.06] px-3 py-1.5 rounded-xl">
+                <span className="text-[11px] font-bold text-stone-400">
+                  {match.teamAShort} <span className={teamACount === 7 ? "text-orange-400" : "text-stone-200"}>{teamACount}</span>
                 </span>
-                <span className="text-zinc-700 text-xs">|</span>
-                <span className="text-[11px] font-semibold text-zinc-400">
-                  {match.teamBShort} <span className={`ml-1 ${teamBCount === 7 ? 'text-amber-500' : 'text-zinc-200'}`}>{teamBCount}</span>
+                <span className="text-stone-700 text-xs">|</span>
+                <span className="text-[11px] font-bold text-stone-400">
+                  {match.teamBShort} <span className={teamBCount === 7 ? "text-orange-400" : "text-stone-200"}>{teamBCount}</span>
                 </span>
               </div>
-
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-zinc-500">Selected:</span>
-                <span className={`text-sm font-mono font-bold ${isFull ? 'text-green-500' : 'text-white'}`}>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-medium text-stone-500">Squad:</span>
+                <span className={`text-sm font-black font-mono ${isFull ? "text-orange-400" : "text-white"}`}>
                   {selectedIds.length}/12
                 </span>
               </div>
             </div>
-
             {isFull && !hasAllRoles && (
-              <span className="text-[10px] text-red-400 font-semibold flex items-center gap-1 mt-0.5">
+              <span className="text-[10px] text-red-400 font-semibold flex items-center gap-1 mt-1">
                 <AlertCircle className="w-3 h-3" /> Missing required roles
               </span>
             )}
@@ -129,85 +130,97 @@ export function SquadBuilder({
           <button
             onClick={handleSave}
             disabled={!isValidSquad || isPending}
-            className="flex items-center gap-2 bg-white text-black disabled:bg-zinc-800 disabled:text-zinc-500 hover:bg-zinc-200 transition-colors px-4 md:px-5 py-2 rounded-md font-semibold text-sm active:scale-[0.98]"
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-white/[0.06] disabled:text-stone-600 text-white transition-all duration-150 px-4 py-2.5 rounded-xl font-semibold text-sm active:scale-[0.97] shadow-lg shadow-orange-500/20 disabled:shadow-none"
           >
             {isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-            Save
+            Save Squad
           </button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex-1 flex flex-col border-r border-zinc-800/60 bg-black">
-          <div className="p-4 border-b border-zinc-800/60 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
+        <div className="flex-1 flex flex-col border-r border-white/[0.04]">
+          <div className="p-3 border-b border-white/[0.04] flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
             {roles.map((role) => {
               const isMissing = role !== "ALL" && roleCounts[role as keyof typeof roleCounts] === 0 && selectedIds.length > 8;
-
               return (
                 <button
                   key={role}
                   onClick={() => setRoleFilter(role)}
-                  className={`relative px-4 py-1.5 rounded-full text-xs font-bold tracking-wider transition-colors shrink-0 ${
+                  className={`relative px-3.5 py-1.5 rounded-xl text-[11px] font-bold tracking-wide transition-all duration-150 shrink-0 ${
                     roleFilter === role
-                      ? "bg-white text-black"
-                      : "bg-zinc-900 text-zinc-400 hover:bg-zinc-800 hover:text-white"
+                      ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                      : "bg-white/[0.04] text-stone-500 hover:text-stone-300 hover:bg-white/[0.06]"
                   }`}
                 >
                   {role}
-                  {isMissing && <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-red-500" />}
+                  {isMissing && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500" />
+                  )}
                 </button>
               );
             })}
           </div>
 
           <ScrollArea className="flex-1 h-0">
-            <div className="divide-y divide-zinc-800/60 pb-20 md:pb-0">
+            <div className="divide-y divide-white/[0.03] pb-24 md:pb-0">
               {filteredPlayers.map((player) => {
                 const isSelected = selectedIds.includes(player.id);
                 const teamShort = player.teamId === match.teamAId ? match.teamAShort : match.teamBShort;
-                
-                const isTeamLimitReached = !isSelected && (
-                  (player.teamId === match.teamAId && teamACount >= 7) ||
-                  (player.teamId === match.teamBId && teamBCount >= 7)
-                );
+                const isTeamLimitReached =
+                  !isSelected &&
+                  ((player.teamId === match.teamAId && teamACount >= 7) ||
+                    (player.teamId === match.teamBId && teamBCount >= 7));
 
                 return (
-                  <div 
-                    key={player.id} 
+                  <div
+                    key={player.id}
                     onClick={() => !isTeamLimitReached && togglePlayer(player.id)}
-                    className={`flex items-center justify-between p-4 transition-colors ${
-                      isSelected ? "bg-blue-950/20" : "hover:bg-zinc-900/50"
-                    } ${isTeamLimitReached ? "opacity-40 cursor-not-allowed" : "cursor-pointer"}`}
+                    className={`flex items-center justify-between px-4 py-3.5 transition-all duration-150 ${
+                      isSelected
+                        ? "bg-orange-500/[0.08]"
+                        : isTeamLimitReached
+                        ? "opacity-35 cursor-not-allowed"
+                        : "hover:bg-white/[0.02] cursor-pointer"
+                    }`}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center overflow-hidden">
-                         <Image src={`/teams/${teamShort.toLowerCase()}.webp`} alt={teamShort} width={24} height={24} className="opacity-50 object-contain" />
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.05] flex items-center justify-center overflow-hidden">
+                        <Image
+                          src={`/teams/${teamShort.toLowerCase()}.webp`}
+                          alt={teamShort}
+                          width={22}
+                          height={22}
+                          className="opacity-60 object-contain"
+                        />
                       </div>
                       <div>
-                        <h3 className={`text-sm font-semibold ${isSelected ? "text-white" : "text-zinc-200"}`}>
+                        <h3 className={`text-[13px] font-semibold leading-tight ${isSelected ? "text-white" : "text-stone-200"}`}>
                           {player.name}
                         </h3>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-indigo-400" : "text-emerald-400"}`}>
+                          <span className={`text-[10px] font-bold uppercase ${
+                            player.teamId === match.teamAId ? "text-sky-400" : "text-emerald-400"
+                          }`}>
                             {teamShort}
                           </span>
-                          <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
-                          <span className="text-[10px] font-medium text-zinc-400 uppercase">{getPlayerCategory(player.role)}</span>
+                          <span className="w-0.5 h-0.5 rounded-full bg-stone-700" />
+                          <span className="text-[10px] font-bold text-stone-600 uppercase">
+                            {getPlayerCategory(player.role)}
+                          </span>
                         </div>
                       </div>
                     </div>
-                    
-                    <button 
+
+                    <button
                       disabled={isTeamLimitReached}
-                      className={`w-7 h-7 rounded-md flex items-center justify-center border transition-all ${
-                        isSelected 
-                          ? "bg-blue-600 border-blue-500 text-white" 
-                          : isTeamLimitReached
-                            ? "bg-zinc-950 border-zinc-800 text-zinc-700"
-                            : "bg-zinc-900 border-zinc-700 text-zinc-400"
+                      className={`w-7 h-7 rounded-xl flex items-center justify-center border transition-all duration-150 ${
+                        isSelected
+                          ? "bg-orange-500 border-orange-500 text-white"
+                          : "bg-white/[0.04] border-white/[0.08] text-stone-600 hover:border-orange-500/30 hover:text-stone-400"
                       }`}
                     >
-                      {isSelected ? <Check className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                      {isSelected ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                     </button>
                   </div>
                 );
@@ -216,33 +229,43 @@ export function SquadBuilder({
           </ScrollArea>
         </div>
 
-        <div className="hidden lg:flex flex-col w-[380px] bg-[#050505]">
-          <div className="p-4 border-b border-zinc-800/60 bg-black/50">
-            <h2 className="text-sm font-semibold text-white flex items-center gap-2">
-              <Swords className="w-4 h-4 text-zinc-500" /> Your Playing XII
+        <div className="hidden lg:flex flex-col w-[340px] bg-[oklch(0.10_0.007_38)]">
+          <div className="px-4 py-3.5 border-b border-white/[0.04]">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500 flex items-center gap-1.5">
+              <Swords className="w-3.5 h-3.5" /> Your Playing XII
             </h2>
           </div>
-          <ScrollArea className="flex-1 p-4 h-0">
+          <ScrollArea className="flex-1 p-3 h-0">
             {selectedPlayers.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-zinc-600 space-y-3 mt-20">
-                <User className="w-8 h-8 opacity-20" />
-                <p className="text-sm font-medium">No players selected yet.</p>
+              <div className="flex flex-col items-center justify-center text-center py-16 gap-3">
+                <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center">
+                  <Swords className="w-5 h-5 text-stone-700" />
+                </div>
+                <p className="text-sm font-medium text-stone-600">Select 12 players</p>
+                <p className="text-xs text-stone-700">Choose from the list on the left</p>
               </div>
             ) : (
-              <div className="space-y-2 pb-10">
+              <div className="space-y-1.5 pb-6">
                 {selectedPlayers.map((player) => (
-                  <div key={player.id} className="flex items-center justify-between p-3 rounded-md border border-zinc-800 bg-zinc-900/30">
-                     <div className="flex flex-col">
-                        <span className="text-sm font-medium text-zinc-200">{player.name}</span>
-                        <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-[10px] text-zinc-500 font-bold uppercase">{getPlayerCategory(player.role)}</span>
-                          <span className="w-1 h-1 rounded-full bg-zinc-700"></span>
-                          <span className="text-[10px] text-zinc-500 font-bold uppercase">{player.teamId === match.teamAId ? match.teamAShort : match.teamBShort}</span>
-                        </div>
-                     </div>
-                     <button onClick={() => togglePlayer(player.id)} className="text-zinc-500 hover:text-red-400 transition-colors p-1">
-                       <MinusIcon className="w-4 h-4" />
-                     </button>
+                  <div key={player.id} className="flex items-center justify-between p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] group">
+                    <div>
+                      <span className="text-[12.5px] font-semibold text-stone-200 block">{player.name}</span>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[10px] font-bold uppercase text-stone-600">{getPlayerCategory(player.role)}</span>
+                        <span className="w-0.5 h-0.5 rounded-full bg-stone-700" />
+                        <span className={`text-[10px] font-bold uppercase ${
+                          player.teamId === match.teamAId ? "text-sky-400/70" : "text-emerald-400/70"
+                        }`}>
+                          {player.teamId === match.teamAId ? match.teamAShort : match.teamBShort}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => togglePlayer(player.id)}
+                      className="p-1 text-stone-700 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all duration-150 opacity-0 group-hover:opacity-100"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 ))}
               </div>
@@ -250,51 +273,48 @@ export function SquadBuilder({
           </ScrollArea>
         </div>
       </div>
-      
-      <div className="lg:hidden p-3 border-t border-zinc-800/60 bg-black shrink-0 flex flex-col gap-3 z-10 pb-safe">
-        
-        <div className="flex items-center justify-between px-1">
-           <div className="flex gap-4">
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-zinc-500 uppercase">{match.teamAShort}</span>
-                <span className={`text-sm font-mono font-bold ${teamACount === 7 ? 'text-amber-500' : 'text-zinc-300'}`}>{teamACount}/7</span>
+
+      <div className="lg:hidden p-3 border-t border-white/[0.05] bg-[oklch(0.10_0.007_38)] shrink-0 z-10 pb-safe">
+        <div className="flex items-center justify-between mb-2.5">
+          <div className="flex gap-3">
+            {[
+              { label: match.teamAShort, count: teamACount, isLimit: teamACount === 7 },
+              { label: match.teamBShort, count: teamBCount, isLimit: teamBCount === 7 },
+            ].map((t) => (
+              <div key={t.label} className="flex flex-col">
+                <span className="text-[9px] font-bold text-stone-600 uppercase">{t.label}</span>
+                <span className={`text-sm font-black font-mono ${t.isLimit ? "text-orange-400" : "text-stone-300"}`}>
+                  {t.count}/7
+                </span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] font-bold text-zinc-500 uppercase">{match.teamBShort}</span>
-                <span className={`text-sm font-mono font-bold ${teamBCount === 7 ? 'text-amber-500' : 'text-zinc-300'}`}>{teamBCount}/7</span>
-              </div>
-           </div>
-           
-           <div className="flex flex-col items-end">
-             <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Total</span>
-             <span className={`text-lg leading-none font-mono font-black ${isFull ? 'text-green-500' : 'text-white'}`}>
-                {selectedIds.length} <span className="text-zinc-600 text-sm">/ 12</span>
-             </span>
-           </div>
+            ))}
+          </div>
+          <div className="flex flex-col items-end">
+            <span className="text-[9px] font-bold text-stone-600 uppercase">Total</span>
+            <span className={`text-xl font-black font-mono leading-tight ${isFull ? "text-orange-400" : "text-white"}`}>
+              {selectedIds.length}<span className="text-stone-700 text-sm">/12</span>
+            </span>
+          </div>
         </div>
 
-        <div className="flex justify-between gap-1.5">
-          {roles.filter(r => r !== "ALL").map(role => {
-             const count = roleCounts[role as keyof typeof roleCounts];
-             const isError = count === 0 && isFull;
-             
-             return (
-               <div key={role} className={`flex-1 flex flex-col items-center justify-center rounded px-2 py-1.5 border transition-colors ${isError ? 'bg-red-950/50 border-red-900' : 'bg-zinc-900 border-zinc-800'}`}>
-                 <span className={`text-[9px] font-bold ${isError ? 'text-red-400' : 'text-zinc-500'}`}>{role}</span>
-                 <span className={`text-xs font-mono font-semibold ${isError ? 'text-red-400' : 'text-zinc-300'}`}>{count}</span>
-               </div>
-             );
+        <div className="flex gap-1.5">
+          {roles.filter((r) => r !== "ALL").map((role) => {
+            const count = roleCounts[role as keyof typeof roleCounts];
+            const isError = count === 0 && isFull;
+            return (
+              <div
+                key={role}
+                className={`flex-1 flex flex-col items-center justify-center py-1.5 rounded-lg border transition-colors ${
+                  isError ? "bg-red-500/10 border-red-500/20" : "bg-white/[0.03] border-white/[0.05]"
+                }`}
+              >
+                <span className={`text-[9px] font-bold uppercase ${isError ? "text-red-400" : "text-stone-600"}`}>{role}</span>
+                <span className={`text-[11px] font-black font-mono ${isError ? "text-red-400" : "text-stone-300"}`}>{count}</span>
+              </div>
+            );
           })}
         </div>
       </div>
     </div>
-  );
-}
-
-function MinusIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M5 12h14" />
-    </svg>
   );
 }

@@ -6,151 +6,144 @@ import { matchEntries, lobbies, matches, teams } from "@repo/db/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import Link from "next/link";
-import { ArrowLeft, User, Trophy, Swords, CalendarDays, History, TrendingUp, Medal } from "lucide-react";
+import { ArrowLeft, Trophy, Swords, CalendarDays, TrendingUp, Medal, Flame } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export default async function ProfilePage() {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) redirect("/api/auth/signin");
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) redirect("/api/auth/signin");
 
-    const userId = session.user.id;
-    const user = session.user;
+  const userId = session.user.id;
+  const user = session.user;
 
-    const [stats] = await db
-        .select({
-            totalPoints: sql<number>`COALESCE(SUM(${matchEntries.score}), 0)::int`,
-            matchesPlayed: sql<number>`COUNT(${matchEntries.id})::int`,
-            highestScore: sql<number>`COALESCE(MAX(${matchEntries.score}), 0)::int`,
-        })
-        .from(matchEntries)
-        .where(eq(matchEntries.userId, userId));
+  const [stats] = await db
+    .select({
+      totalPoints: sql<number>`COALESCE(SUM(${matchEntries.score}), 0)::int`,
+      matchesPlayed: sql<number>`COUNT(${matchEntries.id})::int`,
+      highestScore: sql<number>`COALESCE(MAX(${matchEntries.score}), 0)::int`,
+    })
+    .from(matchEntries)
+    .where(eq(matchEntries.userId, userId));
 
-    const teamA = alias(teams, "teamA");
-    const teamB = alias(teams, "teamB");
+  const teamA = alias(teams, "teamA");
+  const teamB = alias(teams, "teamB");
 
-    const history = await db
-        .select({
-            entryId: matchEntries.id,
-            score: matchEntries.score,
-            lobbyId: lobbies.id,
-            lobbyName: lobbies.name,
-            matchStartTime: matches.startTime,
-            teamAShort: teamA.shortName,
-            teamBShort: teamB.shortName,
-        })
-        .from(matchEntries)
-        .innerJoin(lobbies, eq(matchEntries.lobbyId, lobbies.id))
-        .innerJoin(matches, eq(matchEntries.matchId, matches.id))
-        .innerJoin(teamA, eq(matches.teamAId, teamA.id))
-        .innerJoin(teamB, eq(matches.teamBId, teamB.id))
-        .where(eq(matchEntries.userId, userId))
-        .orderBy(desc(matches.startTime));
+  const history = await db
+    .select({
+      entryId: matchEntries.id,
+      score: matchEntries.score,
+      lobbyId: lobbies.id,
+      lobbyName: lobbies.name,
+      matchStartTime: matches.startTime,
+      teamAShort: teamA.shortName,
+      teamBShort: teamB.shortName,
+    })
+    .from(matchEntries)
+    .innerJoin(lobbies, eq(matchEntries.lobbyId, lobbies.id))
+    .innerJoin(matches, eq(matchEntries.matchId, matches.id))
+    .innerJoin(teamA, eq(matches.teamAId, teamA.id))
+    .innerJoin(teamB, eq(matches.teamBId, teamB.id))
+    .where(eq(matchEntries.userId, userId))
+    .orderBy(desc(matches.startTime));
 
-    return (
-        <div className="max-w-4xl mx-auto w-full p-5 md:p-10 space-y-10 pb-24">
+  const statCards = [
+    { icon: Trophy, label: "Lifetime Points", value: stats.totalPoints, color: "text-orange-400", bg: "bg-orange-500/10", border: "border-orange-500/15", hover: "hover:border-orange-500/30" },
+    { icon: Medal, label: "Best Match Score", value: stats.highestScore, color: "text-amber-400", bg: "bg-amber-500/10", border: "border-amber-500/15", hover: "hover:border-amber-500/30" },
+    { icon: TrendingUp, label: "Squads Submitted", value: stats.matchesPlayed, color: "text-emerald-400", bg: "bg-emerald-500/10", border: "border-emerald-500/15", hover: "hover:border-emerald-500/30" },
+  ];
 
-            <div className="flex items-center gap-4 border-b border-zinc-800/60 pb-6">
-                <Link href="/" className="p-2 -ml-2 rounded-md hover:bg-zinc-900 transition-colors text-zinc-500 hover:text-zinc-200">
-                    <ArrowLeft className="w-5 h-5" />
-                </Link>
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight text-white">Player Profile</h1>
-                    <p className="text-sm text-zinc-500 mt-1">Your lifetime statistics and match history</p>
-                </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 p-6 rounded-2xl border border-zinc-800 bg-black shadow-2xl shadow-black relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-3xl rounded-full -mr-20 -mt-20 pointer-events-none" />
-
-                <Avatar className="w-24 h-24 border-2 border-zinc-800 shadow-xl">
-                    <AvatarImage src={user.image || ""} />
-                    <AvatarFallback className="bg-zinc-900 text-2xl font-bold text-zinc-400">
-                        {user.name?.charAt(0) || "U"}
-                    </AvatarFallback>
-                </Avatar>
-
-                <div className="text-center sm:text-left z-10">
-                    <h2 className="text-2xl font-black text-white tracking-tight">{user.name}</h2>
-                    <p className="text-sm font-medium text-zinc-400 mt-1">{user.email}</p>
-                    <div className="inline-flex items-center gap-2 mt-4 bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-full text-xs font-bold text-zinc-300">
-                    </div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-
-                <div className="p-6 rounded-2xl border border-zinc-800 bg-black flex flex-col items-center justify-center text-center group hover:border-blue-500/50 transition-colors">
-                    <Trophy className="w-6 h-6 text-blue-500 mb-3" />
-                    <span className="text-3xl font-mono font-black text-white">{stats.totalPoints}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mt-1">Lifetime Points</span>
-                </div>
-
-                <div className="p-6 rounded-2xl border border-zinc-800 bg-black flex flex-col items-center justify-center text-center group hover:border-yellow-500/50 transition-colors">
-                    <Medal className="w-6 h-6 text-yellow-500 mb-3" />
-                    <span className="text-3xl font-mono font-black text-white">{stats.highestScore}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mt-1">Highest Match Score</span>
-                </div>
-
-                <div className="p-6 rounded-2xl border border-zinc-800 bg-black flex flex-col items-center justify-center text-center group hover:border-emerald-500/50 transition-colors">
-                    <TrendingUp className="w-6 h-6 text-emerald-500 mb-3" />
-                    <span className="text-3xl font-mono font-black text-white">{stats.matchesPlayed}</span>
-                    <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 mt-1">Squads Submitted</span>
-                </div>
-            </div>
-
-            <div className="space-y-6 pt-4">
-                <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-                    <History className="w-4 h-4" /> Match Ledger
-                </h2>
-
-                <div className="rounded-2xl border border-zinc-800 bg-black overflow-hidden shadow-2xl shadow-black">
-                    {history.length === 0 ? (
-                        <div className="p-12 text-center flex flex-col items-center">
-                            <Swords className="w-10 h-10 text-zinc-700 mb-3" />
-                            <p className="text-sm font-medium text-zinc-400">No match history yet.</p>
-                            <p className="text-xs text-zinc-600 mt-1">Your submitted squads will appear here.</p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-zinc-900 max-h-[600px] overflow-y-auto custom-scrollbar">
-                            {history.map((entry) => (
-                                <div key={entry.entryId} className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-zinc-900/30 transition-colors">
-
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-10 h-10 rounded-full bg-zinc-900 border border-zinc-800 flex items-center justify-center shrink-0">
-                                            <Swords className="w-4 h-4 text-zinc-500" />
-                                        </div>
-                                        <div>
-                                            <Link href={`/lobby/${entry.lobbyId}`} className="text-sm font-bold text-white hover:text-blue-400 transition-colors">
-                                                {entry.lobbyName}
-                                            </Link>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-[11px] font-bold text-zinc-400">
-                                                    {entry.teamAShort} vs {entry.teamBShort}
-                                                </span>
-                                                <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                                                <span className="text-[10px] font-medium text-zinc-500 flex items-center gap-1">
-                                                    <CalendarDays className="w-3 h-3" />
-                                                    {new Date(entry.matchStartTime).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center justify-between sm:justify-end sm:w-32 bg-zinc-900/50 sm:bg-transparent p-3 sm:p-0 rounded-lg">
-                                        <span className="text-[10px] font-bold uppercase tracking-widest text-zinc-500 sm:hidden">Score</span>
-                                        <div className="text-right">
-                                            <span className="block text-lg font-mono font-black text-white">{entry.score}</span>
-                                            <span className="hidden sm:block text-[9px] font-black uppercase tracking-widest text-zinc-600">PTS</span>
-                                        </div>
-                                    </div>
-
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </div>
-
+  return (
+    <div className="max-w-3xl mx-auto w-full p-5 md:p-8 space-y-8 pb-24">
+      <div className="flex items-center gap-3 pb-6 border-b border-white/[0.05]">
+        <Link href="/" className="p-2 -ml-1 rounded-xl hover:bg-white/[0.04] transition-colors text-stone-500 hover:text-stone-300">
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+        <div>
+          <h1 className="text-xl font-bold text-white">Player Profile</h1>
+          <p className="text-[12px] text-stone-500 mt-0.5">Lifetime statistics and match history</p>
         </div>
-    );
+      </div>
+
+      <div className="relative rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 overflow-hidden">
+        <div className="absolute top-0 right-0 w-48 h-48 bg-orange-500/[0.04] blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row items-center sm:items-start gap-5">
+          <Avatar className="w-20 h-20 border-2 border-orange-500/20 shrink-0">
+            <AvatarFallback className="bg-orange-500/10 text-3xl font-black text-orange-400">
+              {user.name?.charAt(0) || "U"}
+            </AvatarFallback>
+            <AvatarImage src={user.image || ""} />
+          </Avatar>
+          <div className="text-center sm:text-left">
+            <h2 className="text-2xl font-black text-white">{user.name}</h2>
+            <p className="text-sm text-stone-500 mt-1">{user.email}</p>
+            <div className="flex items-center justify-center sm:justify-start gap-1.5 mt-3">
+              <Flame className="w-3.5 h-3.5 text-orange-400" />
+              <span className="text-[11px] font-bold text-orange-400">Active Player</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-3">
+        {statCards.map((stat) => (
+          <div key={stat.label} className={`p-5 rounded-2xl border ${stat.border} ${stat.bg} ${stat.hover} flex flex-col items-center justify-center text-center transition-colors duration-200`}>
+            <stat.icon className={`w-5 h-5 ${stat.color} mb-3`} />
+            <span className="text-2xl font-black font-mono text-white">{stat.value.toLocaleString()}</span>
+            <span className="text-[9px] font-bold uppercase tracking-[0.12em] text-stone-600 mt-1">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500 flex items-center gap-1.5">
+          <Swords className="w-3.5 h-3.5" /> Match Ledger
+        </h2>
+
+        <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden">
+          {history.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-14 text-center">
+              <div className="w-12 h-12 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-4">
+                <Swords className="w-5 h-5 text-stone-700" />
+              </div>
+              <p className="text-sm font-semibold text-stone-500">No match history yet</p>
+              <p className="text-xs text-stone-700 mt-1">Your squad entries will appear here</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-white/[0.04] max-h-[500px] overflow-y-auto no-scrollbar">
+              {history.map((entry) => (
+                <div key={entry.entryId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 px-4 py-4 hover:bg-white/[0.02] transition-colors">
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/15 flex items-center justify-center shrink-0">
+                      <Swords className="w-3.5 h-3.5 text-orange-400" />
+                    </div>
+                    <div>
+                      <Link href={`/lobby/${entry.lobbyId}`} className="text-[13px] font-bold text-stone-200 hover:text-orange-400 transition-colors">
+                        {entry.lobbyName}
+                      </Link>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <span className="text-[11px] font-semibold text-stone-500">
+                          {entry.teamAShort} vs {entry.teamBShort}
+                        </span>
+                        <span className="w-0.5 h-0.5 rounded-full bg-stone-700" />
+                        <span className="text-[10px] text-stone-600 flex items-center gap-1">
+                          <CalendarDays className="w-2.5 h-2.5" />
+                          {new Date(entry.matchStartTime).toLocaleDateString("en-IN", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center bg-white/[0.03] sm:bg-transparent p-2.5 sm:p-0 rounded-xl">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-stone-600 sm:hidden">Score</span>
+                    <span className="text-lg font-black font-mono text-white">{entry.score}</span>
+                    <span className="hidden sm:block text-[9px] font-bold uppercase tracking-wider text-stone-700">pts</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

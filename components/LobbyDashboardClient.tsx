@@ -2,13 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  CalendarDays,
-  Trophy,
-  ChevronRight,
-} from "lucide-react";
-
+import { ArrowLeft, CalendarDays, Trophy, ChevronRight, Swords, Users } from "lucide-react";
 import { CopyLinkButton } from "@/components/CopyLinkButton";
 import { RequestsList } from "@/components/RequestsList";
 import { MembersList } from "@/components/MembersList";
@@ -21,14 +15,14 @@ import { JoinRequests } from "@/types/JoinRequests";
 import { formatLeaderboardData } from "@/utils/FormatLeaderboardData";
 
 type LobbyDashboardClientArguments = {
-  lobby: LobbyType,
-  isAdmin: boolean,
-  currentUserId: string,
-  upcomingMatches: MatchType[],
-  leaderboard: LeaderboardMemberDb[],
-  allMembers: MemberType[],
-  joinRequests: JoinRequests[]
-}
+  lobby: LobbyType;
+  isAdmin: boolean;
+  currentUserId: string;
+  upcomingMatches: MatchType[];
+  leaderboard: LeaderboardMemberDb[];
+  allMembers: MemberType[];
+  joinRequests: JoinRequests[];
+};
 
 export function LobbyDashboardClient({
   lobby,
@@ -37,101 +31,121 @@ export function LobbyDashboardClient({
   upcomingMatches,
   leaderboard,
   allMembers,
-  joinRequests
+  joinRequests,
 }: LobbyDashboardClientArguments) {
-
   const [activeTab, setActiveTab] = useState<"lobby" | "members" | "requests">("lobby");
 
-  const lobbyMode: string = lobby.mode;
-  const lobbyId: string = lobby.id;
+  const lobbyMode = lobby.mode;
+  const lobbyId = lobby.id;
   const formattedLeaderboard: LeaderboardMember[] = formatLeaderboardData(leaderboard);
 
+  const tabs = [
+    { key: "lobby", label: "Overview" },
+    { key: "members", label: `Members (${allMembers.length})` },
+    ...(isAdmin && lobby.type === "private"
+      ? [{ key: "requests", label: `Requests${joinRequests.length > 0 ? ` (${joinRequests.length})` : ""}` }]
+      : []),
+  ] as const;
+
   return (
-    <div className="max-w-6xl mx-auto w-full p-5 md:p-10 space-y-6 pb-24">
-
-      <div className="space-y-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-800/60 pb-6">
-          <div className="flex items-center gap-5">
-            <Link href="/" className="p-2 -ml-2 rounded-md hover:bg-zinc-900 transition-colors text-zinc-500">
-              <ArrowLeft className="w-5 h-5" />
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight text-white">{lobby.name}</h1>
-              <div className="flex items-center gap-3 mt-1">
-                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500 border border-zinc-800 px-2 py-0.5 rounded">
-                  {lobby.mode}
-                </span>
-              </div>
+    <div className="max-w-6xl mx-auto w-full p-5 md:p-8 space-y-6 pb-24">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/[0.05]">
+        <div className="flex items-center gap-4">
+          <Link href="/" className="p-2 -ml-2 rounded-xl hover:bg-white/[0.05] transition-colors text-stone-500 hover:text-stone-300">
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+          <div>
+            <div className="flex items-center gap-2.5 mb-1">
+              <h1 className="text-xl font-bold text-white">{lobby.name}</h1>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-orange-400 bg-orange-500/10 border border-orange-500/15 px-2 py-0.5 rounded-md">
+                {lobby.mode}
+              </span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <CopyLinkButton lobbyId={lobby.id} />
+            <p className="text-[12px] text-stone-500">
+              {lobby.type === "private" ? "Private lobby" : "Public lobby"} · {allMembers.length} members
+            </p>
           </div>
         </div>
+        <CopyLinkButton lobbyId={lobby.id} />
+      </div>
 
-        <div className="flex items-center gap-6 border-b border-zinc-800 overflow-x-auto whitespace-nowrap">
+      <div className="flex items-center gap-1 border-b border-white/[0.05]">
+        {tabs.map((tab) => (
           <button
-            onClick={() => setActiveTab("lobby")}
-            className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'lobby' ? 'border-white text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key as any)}
+            className={`px-4 py-2.5 text-[13px] font-semibold transition-all duration-150 border-b-2 -mb-[1px] ${
+              activeTab === tab.key
+                ? "border-orange-500 text-orange-400"
+                : "border-transparent text-stone-500 hover:text-stone-300"
+            }`}
           >
-            Lobby Overview
+            {tab.label}
           </button>
-          <button
-            onClick={() => setActiveTab("members")}
-            className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'members' ? 'border-white text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
-          >
-            Members ({allMembers.length})
-          </button>
-
-          {isAdmin && lobby.type === 'private' && (
-            <button
-              onClick={() => setActiveTab("requests")}
-              className={`pb-3 text-sm font-medium transition-colors border-b-2 ${activeTab === 'requests' ? 'border-white text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
-            >
-              Requests {joinRequests.length > 0 && <span className="ml-1 bg-white text-black px-1.5 py-0.5 rounded-full text-xs">{joinRequests.length}</span>}
-            </button>
-          )}
-        </div>
+        ))}
       </div>
 
       {activeTab === "lobby" && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 pt-4 animate-in fade-in duration-300">
-          <div className="lg:col-span-7 space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-              <CalendarDays className="w-4 h-4" /> {lobby.mode === "match" ? "Target Match" : "Upcoming Schedule"}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-2">
+          <div className="lg:col-span-7 space-y-4">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500 flex items-center gap-1.5">
+              <CalendarDays className="w-3.5 h-3.5" />
+              {lobby.mode === "match" ? "Target Match" : "Upcoming Schedule"}
             </h2>
-            <div className="space-y-3">
-              {upcomingMatches.map((match: any) => (
-                <Link key={match.id} href={`/lobby/${lobby.id}/match/${match.id}`}>
-                  <div className="group relative flex items-center justify-between p-5 rounded-xl border border-zinc-800 bg-black hover:border-zinc-600 transition-all active:scale-[0.99]">
-                    <span className="text-sm font-bold text-zinc-300">{match.teamAShort} vs {match.teamBShort}</span>
-                    <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-white" />
-                  </div>
-                </Link>
-              ))}
+            <div className="space-y-2">
+              {upcomingMatches.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-10 rounded-2xl border border-white/[0.05] bg-white/[0.02]">
+                  <Swords className="w-8 h-8 text-stone-700 mb-3" />
+                  <p className="text-sm text-stone-500 font-medium">No upcoming matches</p>
+                </div>
+              ) : (
+                upcomingMatches.map((match: any) => (
+                  <Link key={match.id} href={`/lobby/${lobby.id}/match/${match.id}`}>
+                    <div className="group flex items-center justify-between p-4 rounded-xl border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] hover:border-orange-500/15 transition-all duration-200 active:scale-[0.99]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-xl bg-orange-500/10 border border-orange-500/15 flex items-center justify-center">
+                          <Swords className="w-3.5 h-3.5 text-orange-400" />
+                        </div>
+                        <div>
+                          <span className="text-[13px] font-semibold text-stone-200">
+                            {match.teamAShort} vs {match.teamBShort}
+                          </span>
+                          <p className="text-[11px] text-stone-600 mt-0.5">Tap to build your squad</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-stone-700 group-hover:text-orange-400 group-hover:translate-x-0.5 transition-all duration-200" />
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
 
-          <div className="lg:col-span-5 space-y-6">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-zinc-500 flex items-center gap-2">
-              <Trophy className="w-4 h-4" /> Standings
+          <div className="lg:col-span-5 space-y-4">
+            <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500 flex items-center gap-1.5">
+              <Trophy className="w-3.5 h-3.5" />
+              Standings
             </h2>
-            <div className="rounded-xl border border-zinc-800 bg-black overflow-hidden min-h-[200px]">
-              <Leaderboard leaderboard={formattedLeaderboard} currentUserId={currentUserId} lobbyMode={lobbyMode} lobbyId={lobbyId}/>
+            <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] overflow-hidden min-h-[200px]">
+              <Leaderboard
+                leaderboard={formattedLeaderboard}
+                currentUserId={currentUserId}
+                lobbyMode={lobbyMode}
+                lobbyId={lobbyId}
+              />
             </div>
           </div>
         </div>
       )}
 
       {activeTab === "members" && (
-        <div className="max-w-2xl pt-4 animate-in fade-in duration-300">
+        <div className="max-w-2xl pt-2">
           <MembersList members={allMembers} isAdmin={isAdmin} lobbyId={lobby.id} currentUserId={currentUserId} />
         </div>
       )}
 
       {activeTab === "requests" && (
-        <div className="max-w-2xl pt-4 animate-in fade-in duration-300">
+        <div className="max-w-2xl pt-2">
           <RequestsList requests={joinRequests} lobbyId={lobby.id} />
         </div>
       )}

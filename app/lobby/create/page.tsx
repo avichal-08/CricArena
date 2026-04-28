@@ -31,11 +31,11 @@ export default async function CreateLobbyPage() {
   const [activeTournament] = await db.select().from(tournaments).limit(1);
 
   return (
-    <div className="max-w-2xl mx-auto w-full p-6 md:p-10 pb-20">
-      <CreateLobbyForm 
-        userId={session.user.id} 
-        upcomingMatches={upcomingMatches} 
-        activeTournamentId={activeTournament?.id} 
+    <div className="max-w-xl mx-auto w-full p-5 md:p-8 pb-24">
+      <CreateLobbyForm
+        userId={session.user.id}
+        upcomingMatches={upcomingMatches}
+        activeTournamentId={activeTournament?.id}
       />
     </div>
   );

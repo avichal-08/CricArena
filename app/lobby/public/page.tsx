@@ -6,17 +6,15 @@ import { lobbies, lobbyMembers, matches, tournaments, teams } from "@repo/db/sch
 import { eq, and, or, gte, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 import Link from "next/link";
-import { Trophy, Swords, CalendarDays, ChevronRight, Lock, Globe, ShieldCheck, Activity } from "lucide-react";
+import { Trophy, Swords, CalendarDays, ChevronRight, Lock, Globe, ShieldCheck, Plus } from "lucide-react";
 
 export default async function PublicLobbiesPage() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) redirect("/api/auth/signin");
 
   const userId = session.user.id;
-
   const teamA = alias(teams, "teamA");
   const teamB = alias(teams, "teamB");
-
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
@@ -51,88 +49,76 @@ export default async function PublicLobbiesPage() {
     .orderBy(desc(lobbies.createdAt));
 
   return (
-    <div className="max-w-6xl mx-auto w-full p-6 md:p-10 space-y-8 pb-24">
-
-      <div className="flex items-center gap-4 border-b border-zinc-800/60 pb-6">
-        <div className="w-12 h-12 bg-zinc-900 border border-zinc-800 rounded-xl flex items-center justify-center shadow-lg">
-          <Globe className="w-6 h-6 text-blue-500" />
+    <div className="max-w-5xl mx-auto w-full p-5 md:p-8 space-y-8 pb-24">
+      <div className="flex items-center gap-3 pb-6 border-b border-white/[0.05]">
+        <div className="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/15 flex items-center justify-center">
+          <Globe className="w-4.5 h-4.5 text-sky-400" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-white">Global Arenas</h1>
-          <p className="text-sm text-zinc-500 mt-1">Discover and join public matches from around the world.</p>
+          <h1 className="text-xl font-bold text-white">Global Arenas</h1>
+          <p className="text-[12px] text-stone-500 mt-0.5">Discover and join open public lobbies</p>
         </div>
       </div>
 
       {publicLobbies.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-20 border border-dashed border-zinc-800 rounded-2xl bg-black">
-          <Globe className="w-10 h-10 text-zinc-700 mb-4" />
-          <h2 className="text-lg font-bold text-zinc-300">No public arenas available</h2>
-          <p className="text-sm text-zinc-500 mt-1 mb-6 text-center max-w-sm">
-            There are currently no active public lobbies to join. Be the first to host one!
-          </p>
+        <div className="flex flex-col items-center justify-center py-20 rounded-2xl border border-dashed border-white/[0.08] text-center">
+          <div className="w-14 h-14 rounded-2xl bg-white/[0.03] border border-white/[0.05] flex items-center justify-center mb-5">
+            <Globe className="w-6 h-6 text-stone-700" />
+          </div>
+          <h2 className="text-base font-bold text-stone-400 mb-2">No public arenas</h2>
+          <p className="text-sm text-stone-600 max-w-xs mb-6">Be the first to create a public lobby for this season.</p>
           <Link href="/lobby/create">
-            <button className="bg-white text-black font-semibold px-6 py-2.5 rounded-lg hover:bg-zinc-200 transition-colors">
-              Create Arena
+            <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 transition-colors text-white font-semibold text-sm px-5 py-2.5 rounded-xl">
+              <Plus className="w-4 h-4" /> Create Arena
             </button>
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {publicLobbies.map((lobby) => (
             <Link key={lobby.id} href={`/lobby/${lobby.id}`}>
-              <div className="group flex flex-col justify-between h-full p-5 rounded-2xl border border-zinc-800 bg-black hover:border-blue-500/50 transition-all active:scale-[0.98]">
-
-                <div className="space-y-4">
-                  <div className="flex items-start justify-between">
-                    <h3 className="text-lg font-bold text-white line-clamp-1 pr-4">{lobby.name}</h3>
-                    {lobby.type === "private" ? (
-                      <Lock className="w-4 h-4 text-zinc-500 shrink-0" />
-                    ) : (
-                      <Globe className="w-4 h-4 text-zinc-500 shrink-0" />
-                    )}
+              <div className="group flex flex-col justify-between h-full p-5 rounded-2xl border border-white/[0.06] bg-white/[0.02] hover:border-sky-500/20 hover:bg-sky-500/[0.02] transition-all duration-200 active:scale-[0.98]">
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="text-[14px] font-bold text-white line-clamp-1">{lobby.name}</h3>
+                    <Globe className="w-3.5 h-3.5 text-stone-600 shrink-0 mt-0.5" />
                   </div>
-
                   <div className="flex items-center gap-2">
-                    <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 bg-zinc-900 border border-zinc-800 px-2 py-1 rounded">
-                      {lobby.mode === "match" ? <Swords className="w-3 h-3" /> : <Trophy className="w-3 h-3" />}
+                    <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-stone-500 bg-white/[0.04] border border-white/[0.06] px-2 py-0.5 rounded-md">
+                      {lobby.mode === "match" ? <Swords className="w-2.5 h-2.5" /> : <Trophy className="w-2.5 h-2.5" />}
                       {lobby.mode}
                     </span>
                     {lobby.role === "admin" && (
-                      <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-2 py-1 rounded">
-                        <ShieldCheck className="w-3 h-3" /> Admin
+                      <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-amber-400 bg-amber-500/10 border border-amber-500/15 px-2 py-0.5 rounded-md">
+                        <ShieldCheck className="w-2.5 h-2.5" /> Admin
                       </span>
                     )}
                   </div>
                 </div>
 
-                <div className="mt-8 pt-4 border-t border-zinc-800/60 flex items-center justify-between">
+                <div className="mt-5 pt-4 border-t border-white/[0.04] flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <CalendarDays className="w-4 h-4 text-zinc-500" />
-                    <div className="flex flex-col">
+                    <CalendarDays className="w-3.5 h-3.5 text-stone-600" />
+                    <div>
                       {lobby.mode === "match" && lobby.matchStartTime ? (
                         <>
-                          <span className="text-xs font-bold text-zinc-300">
-                            {lobby.teamAShort} vs {lobby.teamBShort}
-                          </span>
-                          <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
-                            {new Date(lobby.matchStartTime).toLocaleDateString("en-IN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
-                          </span>
+                          <p className="text-[12px] font-bold text-stone-300">{lobby.teamAShort} vs {lobby.teamBShort}</p>
+                          <p className="text-[10px] text-stone-600">
+                            {new Date(lobby.matchStartTime).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
+                          </p>
                         </>
                       ) : (
                         <>
-                          <span className="text-xs font-bold text-zinc-300">
-                            {lobby.tournamentName}
-                          </span>
-                          <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wider">
+                          <p className="text-[12px] font-bold text-stone-300">{lobby.tournamentName}</p>
+                          <p className="text-[10px] text-stone-600">
                             Ends {new Date(lobby.tournamentEndDate!).toLocaleDateString("en-IN", { month: "short", day: "numeric" })}
-                          </span>
+                          </p>
                         </>
                       )}
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-zinc-700 group-hover:text-blue-500 transition-colors" />
+                  <ChevronRight className="w-4 h-4 text-stone-700 group-hover:text-sky-400 group-hover:translate-x-0.5 transition-all duration-200" />
                 </div>
-
               </div>
             </Link>
           ))}
