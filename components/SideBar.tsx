@@ -58,7 +58,7 @@ export function SideBar({
 
             return (
               <Link key={item.name} href={item.href}>
-                <div className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-[13px] font-medium transition-all duration-150 ${
+                <div className={`relative flex items-center gap-3 px-3 py-2.5 rounded-xl text-lg font-medium transition-all duration-150 ${
                   isActive
                     ? isAdmin
                       ? "bg-emerald-500/10 text-emerald-400"
