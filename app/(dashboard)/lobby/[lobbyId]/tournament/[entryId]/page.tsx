@@ -27,6 +27,7 @@ export default async function MatchEntry({ params }: { params: { entryId: string
     );
   }
 
+  // Safely cast points breakdown to a Record
   const pointsBreakdown = matchEntry.pointsBreakdown as Record<string, number> | null;
 
   const selectedTeam = await db.select().from(players).where(inArray(players.id, selectedPlayersID));
@@ -62,6 +63,7 @@ export default async function MatchEntry({ params }: { params: { entryId: string
         </div>
       </div>
 
+      {/* Applied the mobile height fix here */}
       <div className="relative w-full flex-1 sm:flex-none sm:aspect-[4/5] min-h-[600px] sm:min-h-0 bg-[#1a4a2e] rounded-3xl overflow-hidden border-4 border-[#0f2e1a] shadow-2xl flex flex-col justify-evenly py-8 sm:py-4">
         <div className="absolute inset-3 border border-white/10 rounded-[1.5rem] pointer-events-none" />
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-white/10 pointer-events-none" />
@@ -79,6 +81,8 @@ export default async function MatchEntry({ params }: { params: { entryId: string
               <div className="flex justify-center items-start gap-3 sm:gap-5 w-full px-2 flex-wrap">
                 {playersInRole.map((player) => {
                   const points = pointsBreakdown ? pointsBreakdown[player.id] ?? 0 : null;
+                  const isCaptain = matchEntry.captainId === player.id;
+                  const isViceCaptain = matchEntry.viceCaptainId === player.id;
 
                   return (
                     <div key={player.id} className="flex flex-col items-center group cursor-pointer w-[72px] sm:w-[88px]">
@@ -86,8 +90,19 @@ export default async function MatchEntry({ params }: { params: { entryId: string
                         <div className="w-11 h-11 sm:w-13 sm:h-13 bg-white/10 backdrop-blur text-white rounded-full flex items-center justify-center text-[11px] sm:text-[13px] font-black border border-white/20 group-hover:border-orange-400/60 group-hover:bg-orange-500/20 transition-all duration-200 shadow-lg">
                           {player.name.substring(0, 2).toUpperCase()}
                         </div>
+                        
+                        {/* Captain / Vice-Captain Badge (Top Left) */}
+                        {(isCaptain || isViceCaptain) && (
+                          <div className={`absolute -top-1.5 -left-1.5 text-white text-[9px] sm:text-[10px] font-black px-1.5 py-0.5 rounded-full border-2 border-[#1a4a2e] shadow-sm z-20 min-w-[22px] text-center ${
+                            isCaptain ? "bg-amber-500" : "bg-zinc-500"
+                          }`}>
+                            {isCaptain ? "C" : "VC"}
+                          </div>
+                        )}
+
+                        {/* Individual Points Badge (Top Right) */}
                         {points !== null && (
-                          <div className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#1a4a2e] shadow-sm z-20 min-w-[20px] text-center">
+                          <div className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#1a4a2e] shadow-sm z-20 min-w-[22px] text-center">
                             {points}
                           </div>
                         )}

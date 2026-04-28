@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { ArrowLeft, Check, Plus, Loader2, Swords, AlertCircle, X } from "lucide-react";
+import { ArrowLeft, Check, Plus, Loader2, Swords, AlertCircle, X, Star } from "lucide-react";
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { saveSquadAction } from "@/actions/SquadBuilder";
@@ -46,6 +46,9 @@ export function SquadBuilder({
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [showRulesModal, setShowRulesModal] = useState(false);
 
+  const [captainId, setCaptainId] = useState<string | null>(null);
+  const [viceCaptainId, setViceCaptainId] = useState<string | null>(null);
+
   const roles = ["ALL", "BAT", "BOWL", "AR", "WK"];
 
   const selectedPlayers = players.filter((p) => selectedIds.includes(p.id));
@@ -66,7 +69,11 @@ export function SquadBuilder({
 
   const togglePlayer = (playerId: string) => {
     setSelectedIds((prev) => {
-      if (prev.includes(playerId)) return prev.filter((id) => id !== playerId);
+      if (prev.includes(playerId)) {
+        if (captainId === playerId) setCaptainId(null);
+        if (viceCaptainId === playerId) setViceCaptainId(null);
+        return prev.filter((id) => id !== playerId);
+      }
       if (prev.length >= 12) return prev;
       const playerToAdd = players.find((p) => p.id === playerId);
       if (!playerToAdd) return prev;
@@ -82,9 +89,9 @@ export function SquadBuilder({
   };
 
   const handleConfirmSave = () => {
-    if (!isValidSquad) return;
+    if (!isValidSquad || !captainId || !viceCaptainId) return;
     startTransition(async () => {
-      await saveSquadAction(lobbyId, match.id, selectedIds);
+      await saveSquadAction(lobbyId, match.id, selectedIds, captainId, viceCaptainId);
       setShowConfirmModal(false);
       router.push(`/lobby/${lobbyId}`);
     });
@@ -207,8 +214,10 @@ export function SquadBuilder({
                           />
                         </div>
                         <div>
-                          <h3 className={`text-[13px] font-semibold leading-tight ${isSelected ? "text-white" : "text-stone-200"}`}>
+                          <h3 className={`text-[13px] font-semibold flex items-center gap-1.5 leading-tight ${isSelected ? "text-white" : "text-stone-200"}`}>
                             {player.name}
+                            {captainId === player.id && <span className="bg-orange-500 text-white text-[8px] font-bold px-1 rounded">C</span>}
+                            {viceCaptainId === player.id && <span className="bg-sky-500 text-white text-[8px] font-bold px-1 rounded">VC</span>}
                           </h3>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-sky-400" : "text-emerald-400"
@@ -259,7 +268,11 @@ export function SquadBuilder({
                   {selectedPlayers.map((player) => (
                     <div key={player.id} className="flex items-center justify-between p-3 rounded-xl border border-white/[0.05] bg-white/[0.02] group">
                       <div>
-                        <span className="text-[12.5px] font-semibold text-stone-200 block">{player.name}</span>
+                        <span className="text-[12.5px] font-semibold text-stone-200 flex items-center gap-1.5 block">
+                          {player.name}
+                          {captainId === player.id && <span className="bg-orange-500 text-white text-[8px] font-bold px-1 rounded">C</span>}
+                          {viceCaptainId === player.id && <span className="bg-sky-500 text-white text-[8px] font-bold px-1 rounded">VC</span>}
+                        </span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] font-bold uppercase text-stone-600">{getPlayerCategory(player.role)}</span>
                           <span className="w-0.5 h-0.5 rounded-full bg-stone-700" />
@@ -329,26 +342,37 @@ export function SquadBuilder({
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <div className="bg-[oklch(0.12_0.01_38)] border border-white/[0.1] rounded-2xl w-full max-w-md flex flex-col overflow-hidden max-h-[85vh] shadow-2xl">
 
-            <div className="p-4 border-b border-white/[0.05] flex items-center justify-between bg-white/[0.02] shrink-0">
-              <h2 className="text-base font-bold text-white flex items-center gap-2">
-                <Check className="w-4 h-4 text-orange-500" /> Confirm Playing XII
-              </h2>
-              <button
-                onClick={() => !isPending && setShowConfirmModal(false)}
-                disabled={isPending}
-                className="p-1 text-stone-500 hover:text-white hover:bg-white/[0.1] rounded-lg transition-colors disabled:opacity-50"
-              >
-                <X className="w-5 h-5" />
-              </button>
+            <div className="p-4 border-b border-white/[0.05] bg-white/[0.02] shrink-0">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-base font-bold text-white flex items-center gap-2">
+                  <Star className="w-4 h-4 text-orange-500" /> Choose Captains
+                </h2>
+                <button
+                  onClick={() => !isPending && setShowConfirmModal(false)}
+                  disabled={isPending}
+                  className="p-1 text-stone-500 hover:text-white hover:bg-white/[0.1] rounded-lg transition-colors disabled:opacity-50"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <p className="text-[11px] text-stone-400">
+                Captain gets <span className="text-orange-400 font-bold">2x</span> points. Vice-Captain gets <span className="text-sky-400 font-bold">1.5x</span> points.
+              </p>
             </div>
 
             <div className="flex-1 overflow-y-auto overscroll-contain min-h-0 w-full p-4 space-y-2">
               {selectedPlayers.map((player) => {
                 const teamShort = player.teamId === match.teamAId ? match.teamAShort : match.teamBShort;
+                const isCaptain = captainId === player.id;
+                const isViceCaptain = viceCaptainId === player.id;
+
                 return (
-                  <div key={`confirm-${player.id}`} className="flex items-center justify-between p-3 rounded-xl border border-white/[0.05] bg-white/[0.02]">
+                  <div key={`confirm-${player.id}`} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${isCaptain ? "bg-orange-500/10 border-orange-500/30" :
+                      isViceCaptain ? "bg-sky-500/10 border-sky-500/30" :
+                        "border-white/[0.05] bg-white/[0.02]"
+                    }`}>
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.05] flex items-center justify-center overflow-hidden">
+                      <div className="w-8 h-8 rounded-lg bg-white/[0.04] border border-white/[0.05] flex items-center justify-center overflow-hidden shrink-0">
                         <Image
                           src={`/teams/${teamShort.toLowerCase()}.webp`}
                           alt={teamShort}
@@ -358,7 +382,8 @@ export function SquadBuilder({
                         />
                       </div>
                       <div>
-                        <span className="text-[13px] font-semibold text-stone-200 block">{player.name}</span>
+                        <span className={`text-[13px] font-semibold block ${isCaptain ? "text-orange-400" : isViceCaptain ? "text-sky-400" : "text-stone-200"
+                          }`}>{player.name}</span>
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-sky-400" : "text-emerald-400"
                             }`}>
@@ -369,34 +394,68 @@ export function SquadBuilder({
                         </div>
                       </div>
                     </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => {
+                          setCaptainId(player.id);
+                          if (viceCaptainId === player.id) setViceCaptainId(null);
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${isCaptain
+                            ? "bg-orange-500 text-white shadow-md shadow-orange-500/20"
+                            : "bg-white/[0.04] text-stone-500 hover:text-stone-300 hover:bg-white/[0.08]"
+                          }`}
+                      >
+                        C
+                      </button>
+                      <button
+                        onClick={() => {
+                          setViceCaptainId(player.id);
+                          if (captainId === player.id) setCaptainId(null);
+                        }}
+                        className={`w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black transition-all ${isViceCaptain
+                            ? "bg-sky-500 text-white shadow-md shadow-sky-500/20"
+                            : "bg-white/[0.04] text-stone-500 hover:text-stone-300 hover:bg-white/[0.08]"
+                          }`}
+                      >
+                        VC
+                      </button>
+                    </div>
                   </div>
                 );
               })}
             </div>
 
-            <div className="p-4 border-t border-white/[0.05] flex gap-3 bg-white/[0.01] shrink-0">
-              <button
-                onClick={() => setShowConfirmModal(false)}
-                disabled={isPending}
-                className="flex-1 py-3 rounded-xl border border-white/[0.1] text-stone-300 font-semibold text-sm hover:bg-white/[0.05] transition-all disabled:opacity-50"
-              >
-                Go Back
-              </button>
-              <button
-                onClick={handleConfirmSave}
-                disabled={isPending}
-                className="flex-[2] py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm flex justify-center items-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none shadow-lg shadow-orange-500/20"
-              >
-                {isPending ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Saving...
-                  </>
-                ) : (
-                  <>
-                    Confirm
-                  </>
-                )}
-              </button>
+            <div className="p-4 border-t border-white/[0.05] flex flex-col gap-3 bg-white/[0.01] shrink-0">
+              {(!captainId || !viceCaptainId) && (
+                <div className="text-[11px] text-center font-medium text-amber-500/80 bg-amber-500/10 py-1.5 rounded-lg">
+                  Please select both a Captain and Vice-Captain
+                </div>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowConfirmModal(false)}
+                  disabled={isPending}
+                  className="flex-1 py-3 rounded-xl border border-white/[0.1] text-stone-300 font-semibold text-sm hover:bg-white/[0.05] transition-all disabled:opacity-50"
+                >
+                  Go Back
+                </button>
+                <button
+                  onClick={handleConfirmSave}
+                  disabled={isPending || !captainId || !viceCaptainId}
+                  className="flex-[2] py-3 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-sm flex justify-center items-center gap-2 transition-all active:scale-[0.98] disabled:opacity-70 disabled:pointer-events-none shadow-lg shadow-orange-500/20"
+                >
+                  {isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" /> Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" /> Lock In Squad
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </div>

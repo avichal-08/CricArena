@@ -10,12 +10,15 @@ import { matchEntries, players } from "@repo/db/schema";
 import { getPlayerCategory } from "@/utils/PlayerCategory";
 
 
-export async function saveSquadAction(lobbyId: string, matchId: string, playerIds: string[]) {
+export async function saveSquadAction(lobbyId: string, matchId: string, playerIds: string[], captainId: string, viceCaptainId: string) {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) throw new Error("Unauthorized");
 
   if (playerIds.length !== 12) {
     throw new Error("Must select exactly 12 players");
+  }
+  if (!captainId || !viceCaptainId) {
+    throw new Error("Must select captain and vice captain");
   }
 
   const selectedPlayers = await db
@@ -54,11 +57,17 @@ export async function saveSquadAction(lobbyId: string, matchId: string, playerId
       lobbyId,
       matchId,
       teamSelection: playerIds,
-      prePredictions: {}, 
+      captainId,
+      viceCaptainId,
+      prePredictions: {},
     })
     .onConflictDoUpdate({
       target: [matchEntries.userId, matchEntries.lobbyId, matchEntries.matchId],
-      set: { teamSelection: playerIds },
+      set: {
+        teamSelection: playerIds,
+        captainId,
+        viceCaptainId
+      },
     });
 
   revalidatePath(`/lobby/${lobbyId}`);
