@@ -9,7 +9,7 @@ export function UpcomingMatches({ matches }: { matches: any[] }) {
   return (
     <section>
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">Upcoming Fixtures</h2>
+        <h2 className="text-[11px] font-bold uppercase tracking-[0.12em] text-stone-500">Fixtures</h2>
         <Link href="/matches" className="text-[11px] font-semibold text-orange-400 hover:text-orange-300 transition-colors flex items-center gap-1">
           View all <ChevronRight className="w-3 h-3" />
         </Link>

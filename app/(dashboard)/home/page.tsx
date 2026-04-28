@@ -21,6 +21,9 @@ export default async function HomePage() {
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
 
+  const endOfToday = new Date();
+  endOfToday.setHours(23, 59, 59, 999);
+
   try {
     const [upcomingMatches, campusLobby, myLobbies] = await Promise.all([
       db
@@ -33,7 +36,7 @@ export default async function HomePage() {
         .from(matches)
         .innerJoin(teamA, eq(matches.teamAId, teamA.id))
         .innerJoin(teamB, eq(matches.teamBId, teamB.id))
-        .where(gte(matches.startTime, new Date()))
+        .where(gte(matches.startTime, startOfToday))
         .orderBy(asc(matches.startTime))
         .limit(5),
 
@@ -41,35 +44,35 @@ export default async function HomePage() {
 
       userId
         ? db
-            .select({
-              id: lobbies.id,
-              name: lobbies.name,
-              type: lobbies.type,
-              mode: lobbies.mode,
-              role: lobbyMembers.role,
-              matchStartTime: matches.startTime,
-              teamAShort: teamA.shortName,
-              teamBShort: teamB.shortName,
-              tournamentName: tournaments.name,
-              tournamentEndDate: tournaments.endDate,
-            })
-            .from(lobbyMembers)
-            .innerJoin(lobbies, eq(lobbyMembers.lobbyId, lobbies.id))
-            .leftJoin(matches, eq(lobbies.matchId, matches.id))
-            .leftJoin(tournaments, eq(lobbies.tournamentId, tournaments.id))
-            .leftJoin(teamA, eq(matches.teamAId, teamA.id))
-            .leftJoin(teamB, eq(matches.teamBId, teamB.id))
-            .where(
-              and(
-                eq(lobbyMembers.userId, userId),
-                eq(lobbyMembers.status, "accepted"),
-                or(
-                  and(eq(lobbies.mode, "match"), gte(matches.startTime, startOfToday)),
-                  and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, startOfToday))
-                )
+          .select({
+            id: lobbies.id,
+            name: lobbies.name,
+            type: lobbies.type,
+            mode: lobbies.mode,
+            role: lobbyMembers.role,
+            matchStartTime: matches.startTime,
+            teamAShort: teamA.shortName,
+            teamBShort: teamB.shortName,
+            tournamentName: tournaments.name,
+            tournamentEndDate: tournaments.endDate,
+          })
+          .from(lobbyMembers)
+          .innerJoin(lobbies, eq(lobbyMembers.lobbyId, lobbies.id))
+          .leftJoin(matches, eq(lobbies.matchId, matches.id))
+          .leftJoin(tournaments, eq(lobbies.tournamentId, tournaments.id))
+          .leftJoin(teamA, eq(matches.teamAId, teamA.id))
+          .leftJoin(teamB, eq(matches.teamBId, teamB.id))
+          .where(
+            and(
+              eq(lobbyMembers.userId, userId),
+              eq(lobbyMembers.status, "accepted"),
+              or(
+                and(eq(lobbies.mode, "match"), gte(matches.startTime, startOfToday)),
+                and(eq(lobbies.mode, "tournament"), gte(tournaments.endDate, startOfToday))
               )
             )
-            .orderBy(desc(lobbies.createdAt))
+          )
+          .orderBy(desc(lobbies.createdAt))
         : Promise.resolve([]),
     ]);
 
