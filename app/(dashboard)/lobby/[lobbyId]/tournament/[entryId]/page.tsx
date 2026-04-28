@@ -27,6 +27,8 @@ export default async function MatchEntry({ params }: { params: { entryId: string
     );
   }
 
+  const pointsBreakdown = matchEntry.pointsBreakdown as Record<string, number> | null;
+
   const selectedTeam = await db.select().from(players).where(inArray(players.id, selectedPlayersID));
 
   const groupedPlayers = selectedTeam.reduce((acc, player) => {
@@ -60,7 +62,7 @@ export default async function MatchEntry({ params }: { params: { entryId: string
         </div>
       </div>
 
-      <div className="relative w-full aspect-[3/4] sm:aspect-[4/5] bg-[#1a4a2e] rounded-3xl overflow-hidden border-4 border-[#0f2e1a] shadow-2xl flex flex-col justify-evenly py-4">
+      <div className="relative w-full flex-1 sm:flex-none sm:aspect-[4/5] min-h-[600px] sm:min-h-0 bg-[#1a4a2e] rounded-3xl overflow-hidden border-4 border-[#0f2e1a] shadow-2xl flex flex-col justify-evenly py-8 sm:py-4">
         <div className="absolute inset-3 border border-white/10 rounded-[1.5rem] pointer-events-none" />
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[1px] bg-white/10 pointer-events-none" />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-14 sm:w-18 h-28 sm:h-36 border border-white/10 rounded-sm pointer-events-none" />
@@ -75,16 +77,27 @@ export default async function MatchEntry({ params }: { params: { entryId: string
                 {role}
               </span>
               <div className="flex justify-center items-start gap-3 sm:gap-5 w-full px-2 flex-wrap">
-                {playersInRole.map((player) => (
-                  <div key={player.id} className="flex flex-col items-center group cursor-pointer w-[72px] sm:w-[88px]">
-                    <div className="w-11 h-11 sm:w-13 sm:h-13 bg-white/10 backdrop-blur text-white rounded-full flex items-center justify-center text-[11px] sm:text-[13px] font-black border border-white/20 group-hover:border-orange-400/60 group-hover:bg-orange-500/20 transition-all duration-200 shadow-lg">
-                      {player.name.substring(0, 2).toUpperCase()}
+                {playersInRole.map((player) => {
+                  const points = pointsBreakdown ? pointsBreakdown[player.id] ?? 0 : null;
+
+                  return (
+                    <div key={player.id} className="flex flex-col items-center group cursor-pointer w-[72px] sm:w-[88px]">
+                      <div className="relative">
+                        <div className="w-11 h-11 sm:w-13 sm:h-13 bg-white/10 backdrop-blur text-white rounded-full flex items-center justify-center text-[11px] sm:text-[13px] font-black border border-white/20 group-hover:border-orange-400/60 group-hover:bg-orange-500/20 transition-all duration-200 shadow-lg">
+                          {player.name.substring(0, 2).toUpperCase()}
+                        </div>
+                        {points !== null && (
+                          <div className="absolute -top-1.5 -right-1.5 bg-orange-500 text-white text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded-full border-2 border-[#1a4a2e] shadow-sm z-20 min-w-[20px] text-center">
+                            {points}
+                          </div>
+                        )}
+                      </div>
+                      <div className="mt-1 bg-black/70 text-white text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md text-center w-full truncate font-semibold">
+                        {player.name.split(" ").slice(-1)[0]}
+                      </div>
                     </div>
-                    <div className="mt-1 bg-black/70 text-white text-[9px] sm:text-[10px] px-1.5 py-0.5 rounded-md text-center w-full truncate font-semibold">
-                      {player.name.split(" ").slice(-1)[0]}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           );
