@@ -40,10 +40,11 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
     points += (stats.runs || 0) * 1;
     points += (stats.fours || 0) * 1;
     points += (stats.sixes || 0) * 2;
-    
+
     if (stats.runs >= 100) points += 16;
     else if (stats.runs >= 50) points += 8;
     else if (stats.runs >= 30) points += 4;
+    else if (stats.runs == 0 && stats.ballsFaced > 0) points -= 4;
 
     if ((stats.ballsFaced || 0) >= 10) {
       const strikeRate = (stats.runs / stats.ballsFaced) * 100;
@@ -67,7 +68,7 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
     if (overs >= 2) {
       const totalBalls = getBallsFromOvers(overs);
       const economyRate = (stats.runsConceded || 0) / (totalBalls / 6);
-      
+
       if (economyRate < 5) points += 6;
       else if (economyRate < 6) points += 4;
       else if (economyRate <= 7) points += 2;
@@ -94,6 +95,6 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
     processedCount++;
   }
 
-  revalidatePath("/", "layout"); 
+  revalidatePath("/", "layout");
   return { success: true, processedCount };
 }

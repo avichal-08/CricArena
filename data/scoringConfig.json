@@ -1,0 +1,64 @@
+{
+  "batting": {
+    "basePoints": {
+      "run": 1,
+      "fourBonus": 1,
+      "sixBonus": 2
+    },
+    "milestoneBonuses": {
+      "century": 16,
+      "halfCentury": 8,
+      "thirtyRuns": 4
+    },
+    "penalties": {
+      "duck": {
+        "points": -4,
+        "conditions": {
+          "maxRuns": 0,
+          "minBallsFaced": 1
+        }
+      }
+    },
+    "strikeRate": {
+      "minimumBallsFaced": 10,
+      "modifiers": [
+        { "condition": "> 170", "points": 6 },
+        { "condition": "> 150", "points": 4 },
+        { "condition": ">= 130", "points": 2 },
+        { "condition": "< 70", "points": -2 },
+        { "condition": "< 60", "points": -4 },
+        { "condition": "< 50", "points": -6 }
+      ]
+    }
+  },
+  "bowling": {
+    "basePoints": {
+      "wicket": 25,
+      "maiden": 12
+    },
+    "milestoneBonuses": {
+      "fiveWickets": 16,
+      "fourWickets": 8,
+      "threeWickets": 4
+    },
+    "economyRate": {
+      "minimumOversBowled": 2,
+      "modifiers": [
+        { "condition": "< 5", "points": 6 },
+        { "condition": "< 6", "points": 4 },
+        { "condition": "<= 7", "points": 2 },
+        { "condition": "> 10", "points": -2 },
+        { "condition": "> 11", "points": -4 },
+        { "condition": "> 12", "points": -6 }
+      ]
+    }
+  },
+  "fielding": {
+    "basePoints": {
+      "catch": 8
+    },
+    "milestoneBonuses": {
+      "threeCatches": 4
+    }
+  }
+}

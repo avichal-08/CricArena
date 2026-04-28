@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Plus, Loader2, Swords, AlertCircle, X } from "lucide-
 import Link from "next/link";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { saveSquadAction } from "@/actions/SquadBuilder";
+import { ScoringRules } from "./ScoringRule";
 
 type Player = { id: string; name: string; teamId: string; role: string };
 
@@ -43,6 +44,7 @@ export function SquadBuilder({
   const [selectedIds, setSelectedIds] = useState<string[]>(initialSelection);
   const [roleFilter, setRoleFilter] = useState<string>("ALL");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showRulesModal, setShowRulesModal] = useState(false);
 
   const roles = ["ALL", "BAT", "BOWL", "AR", "WK"];
 
@@ -134,6 +136,10 @@ export function SquadBuilder({
                 </span>
               )}
             </div>
+
+            <button onClick={() => setShowRulesModal(true)} className="text-stone-400 hover:text-white">
+              <AlertCircle className="w-4 h-4" />
+            </button>
 
             <button
               onClick={handleInitialSave}
@@ -392,6 +398,17 @@ export function SquadBuilder({
                 )}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showRulesModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-md">
+            <button onClick={() => setShowRulesModal(false)} className="absolute -top-3 -right-3 z-10 p-2 bg-stone-800 rounded-full text-white">
+              <X className="w-4 h-4" />
+            </button>
+            <ScoringRules />
           </div>
         </div>
       )}
