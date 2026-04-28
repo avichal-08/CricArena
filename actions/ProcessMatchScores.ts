@@ -3,7 +3,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/authOptions";
 import { db } from "@repo/db";
-import { matchEntries, players, users } from "@repo/db/schema";
+import { matchEntries, players, users, matches } from "@repo/db/schema";
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 
@@ -24,6 +24,8 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
   } catch (e) {
     throw new Error("Invalid JSON format. Check syntax.");
   }
+
+  await db.update(matches).set({ scorecard }).where(eq(matches.id, matchId));
 
   const entries = await db.select().from(matchEntries).where(eq(matchEntries.matchId, matchId));
   if (entries.length === 0) throw new Error("No squads were submitted for this match.");
@@ -86,12 +88,28 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
   let processedCount = 0;
   for (const entry of entries) {
     let userTotalScore = 0;
+    const userBreakdown: Record<string, number> = {};
+
     for (const playerId of entry.teamSelection) {
-      if (pointDictionary[playerId]) {
-        userTotalScore += pointDictionary[playerId];
+      let playerPoints = pointDictionary[playerId] || 0;
+
+      if (playerId === entry.captainId) {
+        playerPoints *= 2;
+      } else if (playerId === entry.viceCaptainId) {
+        playerPoints *= 1.5;
       }
+
+      userTotalScore += playerPoints;
+      userBreakdown[playerId] = playerPoints; 
     }
-    await db.update(matchEntries).set({ score: userTotalScore }).where(eq(matchEntries.id, entry.id));
+
+    await db.update(matchEntries)
+      .set({ 
+        score: userTotalScore,
+        pointsBreakdown: userBreakdown 
+      })
+      .where(eq(matchEntries.id, entry.id));
+      
     processedCount++;
   }
 

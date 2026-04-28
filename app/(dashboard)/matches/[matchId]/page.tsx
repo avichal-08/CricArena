@@ -2,7 +2,7 @@ import { db } from "@repo/db";
 import { matches, teams, tournaments, players } from "@repo/db/schema";
 import { eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, Clock, Trophy, Shield } from "lucide-react";
@@ -20,6 +20,7 @@ export default async function MatchDetailsPage({ params }: { params: { matchId: 
       id: matches.id,
       startTime: matches.startTime,
       tournamentName: tournaments.name,
+      scorecard: matches.scorecard,
       teamA: { id: teamA.id, name: teamA.name, shortName: teamA.shortName, logoUrl: teamA.logoUrl },
       teamB: { id: teamB.id, name: teamB.name, shortName: teamB.shortName, logoUrl: teamB.logoUrl },
     })
@@ -30,6 +31,8 @@ export default async function MatchDetailsPage({ params }: { params: { matchId: 
     .where(eq(matches.id, matchId));
 
   if (!matchData) notFound();
+
+  if (matchData.scorecard) redirect(`/matches/${matchId}/scorecard`);
 
   const squadPlayers = await db
     .select()

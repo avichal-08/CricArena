@@ -104,6 +104,7 @@ export const matches = pgTable(
     teamBId: text('team_b_id')
       .notNull()
       .references(() => teams.id, { onDelete: 'cascade' }),
+    scorecard: jsonb("scorecard"),
     isAbandoned: boolean('is_abandoned').default(false).notNull(),
     startTime: timestamp('start_time', { mode: 'date' }).notNull(),
   },
@@ -180,6 +181,9 @@ export const matchEntries = pgTable(
       .notNull()
       .references(() => matches.id, { onDelete: 'cascade' }),
     teamSelection: jsonb('team_selection').$type<string[]>().notNull(),
+    captainId: text("captain_id"),
+    viceCaptainId: text("vice_captain_id"),
+    pointsBreakdown: jsonb("points_breakdown"),
     prePredictions: jsonb('pre_predictions').$type<Record<string, string | number>>().notNull(),
     score: integer('score').default(0).notNull(),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
