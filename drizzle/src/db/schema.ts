@@ -71,6 +71,18 @@ export const teams = pgTable('team', {
   logoUrl: text('logo_url'),
 });
 
+export const reviews = pgTable('review', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  userId: text('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  rating: integer('rating').default(0).notNull(),
+  reviewText: text('review_text').notNull(),
+  createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
+})
+
 export const players = pgTable(
   'player',
   {

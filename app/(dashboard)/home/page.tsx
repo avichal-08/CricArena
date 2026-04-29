@@ -1,7 +1,7 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/configs/authOptions";
 import { db } from "@repo/db";
-import { matches, lobbies, teams, lobbyMembers, tournaments } from "@repo/db/schema";
+import { matches, lobbies, teams, lobbyMembers, tournaments, reviews } from "@repo/db/schema";
 import { eq, gte, asc, or, and, desc } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -9,6 +9,7 @@ import { UpcomingMatches } from "@/components/UpcomingMatches";
 import { MyLobbies } from "@/components/MyLobbies";
 import { CampusLobby } from "@/components/CampusLobby";
 import { CreateLobbyButton } from "@/components/CreateLobbyButton";
+import { ReviewModal } from "@/components/ReviewModal";
 import { Flame } from "lucide-react";
 
 export default async function HomePage() {
@@ -25,7 +26,13 @@ export default async function HomePage() {
   endOfToday.setHours(23, 59, 59, 999);
 
   try {
-    const [upcomingMatches, campusLobby, myLobbies] = await Promise.all([
+    const [hasReviewed, upcomingMatches, campusLobby, myLobbies] = await Promise.all([
+      userId
+        ? db
+            .select()
+            .from(reviews)
+            .where(eq(reviews.userId, userId))
+        : Promise.resolve([]),
       db
         .select({
           id: matches.id,
@@ -76,8 +83,10 @@ export default async function HomePage() {
         : Promise.resolve([]),
     ]);
 
+    const needsReview = !!userId && hasReviewed.length === 0;
+
     return (
-      <div className="max-w-5xl mx-auto w-full p-5 md:p-8 space-y-10 pb-24">
+      <div className="max-w-5xl mx-auto w-full p-5 md:p-8 space-y-10 pb-24 relative">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-6 border-b border-white/[0.05]">
           <div>
             <div className="flex items-center gap-2 mb-2">
@@ -98,6 +107,8 @@ export default async function HomePage() {
           {userId && myLobbies.length > 0 && <MyLobbies lobbies={myLobbies} />}
           <CampusLobby lobbies={campusLobby} />
         </div>
+
+        <ReviewModal needsReview={needsReview} />
       </div>
     );
   } catch (error) {
