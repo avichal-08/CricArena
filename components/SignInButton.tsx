@@ -1,16 +1,39 @@
-"use client"
+"use client";
 
-import { signIn } from "next-auth/react"
-import { LogIn } from "lucide-react"
+import { signIn } from "next-auth/react";
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
 
-export function SignInButton() {
+export function SignInButton({ 
+  className, 
+  children 
+}: { 
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    setIsLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/home" });
+    } catch (error) {
+      console.error("Sign in failed:", error);
+      setIsLoading(false); 
+    }
+  };
+
   return (
     <button
-      onClick={() => signIn("google", { callbackUrl: "/home" })}
-      className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 active:scale-[0.98] transition-all duration-150 text-white font-semibold text-sm px-5 py-2.5 rounded-xl shadow-lg shadow-orange-500/20"
+      onClick={handleLogin}
+      disabled={isLoading}
+      className={`${className} disabled:opacity-80 disabled:cursor-not-allowed`}
     >
-      <LogIn className="w-4 h-4" />
-      Sign In with Google
+      {isLoading ? (
+        <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+      ) : (
+        children
+      )}
     </button>
-  )
+  );
 }
