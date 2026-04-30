@@ -4,6 +4,7 @@ import {
   timestamp,
   primaryKey,
   integer,
+  real,
   jsonb,
   unique,
   index,
@@ -197,7 +198,7 @@ export const matchEntries = pgTable(
     viceCaptainId: text("vice_captain_id"),
     pointsBreakdown: jsonb("points_breakdown"),
     prePredictions: jsonb('pre_predictions').$type<Record<string, string | number>>().notNull(),
-    score: integer('score').default(0).notNull(),
+    score: real("score").default(0),
     createdAt: timestamp('created_at', { mode: 'date' }).defaultNow().notNull(),
   },
   (t) => ({
