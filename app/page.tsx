@@ -440,20 +440,46 @@ function CTASection() {
 }
 
 export default async function LandingPage() {
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "CricArena",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "WebBrowser",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "2400"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "description": "Real-time multiplayer fantasy cricket platform. Build your squad, challenge friends, and climb the live IPL leaderboard."
+  };
+
   const session = await getServerSession(authOptions);
   if (session) redirect("/home");
 
   return (
-    <div className="min-h-screen bg-[oklch(0.09_0.007_38)] text-white antialiased">
-      <NavBar />
-      <HeroSection />
-      <SocialProof />
-      <Features />
-      <ProductPreview />
-      <BenefitsSection />
-      <Testimonials />
-      <CTASection />
-      <Footer />
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="min-h-screen bg-[oklch(0.09_0.007_38)] text-white antialiased">
+        <NavBar />
+        <HeroSection />
+        <SocialProof />
+        <Features />
+        <ProductPreview />
+        <BenefitsSection />
+        <Testimonials />
+        <CTASection />
+        <Footer />
+      </div>
+    </>
   );
 }
