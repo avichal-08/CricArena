@@ -5,9 +5,10 @@ import { db } from "@repo/db";
 import { matches, lobbies, teams, players, matchEntries, lobbyMembers } from "@repo/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
-import { SquadBuilder } from "@/components/SquadBuilder";
 import { ShieldX } from "lucide-react";
 import Link from "next/link";
+
+import { SquadBuilder } from "@/components/SquadBuilder";
 
 export default async function SquadBuilderPage({
   params,
@@ -70,6 +71,7 @@ export default async function SquadBuilderPage({
       teamBId: matches.teamBId,
       teamAShort: teamA.shortName,
       teamBShort: teamB.shortName,
+      lineups: matches.lineups,
     })
     .from(matches)
     .innerJoin(teamA, eq(matches.teamAId, teamA.id))

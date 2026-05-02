@@ -117,6 +117,10 @@ export const matches = pgTable(
     teamBId: text('team_b_id')
       .notNull()
       .references(() => teams.id, { onDelete: 'cascade' }),
+    venue: text("venue"),
+    toss: text("toss"),
+    lineups: jsonb("lineups"),
+    winProbability: jsonb("win_probability"),
     scorecard: jsonb("scorecard"),
     currentSummary: jsonb("current_summary"),
     isAbandoned: boolean('is_abandoned').default(false).notNull(),

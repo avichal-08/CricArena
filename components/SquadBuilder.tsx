@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { ArrowLeft, Check, Plus, Loader2, Swords, AlertCircle, X, Star } from "lucide-react";
@@ -19,14 +19,6 @@ export const getPlayerCategory = (role: string) => {
   if (r.includes("all") || r === "ar") return "AR";
   return "OTHER";
 };
-
-function MinusIcon(props: any) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
-      <path d="M5 12h14" />
-    </svg>
-  );
-}
 
 export function SquadBuilder({
   lobbyId,
@@ -51,7 +43,34 @@ export function SquadBuilder({
 
   const roles = ["ALL", "BAT", "BOWL", "AR", "WK"];
 
-  const selectedPlayers = players.filter((p) => selectedIds.includes(p.id));
+  const getPlayerStatus = (playerName: string, teamId: string) => {
+    if (!match.lineups) return null;
+    
+    const teamShort = teamId === match.teamAId ? match.teamAShort : match.teamBShort;
+    const teamLineups = match.lineups[teamShort];
+    if (!teamLineups) return null;
+
+    const teamXi = teamLineups.playingXi || [];
+    const teamSubs = teamLineups.subs || [];
+
+    const isPlaying = teamXi.some((name: string) => name.includes(playerName));
+    const isSub = teamSubs.some((name: string) => name.includes(playerName));
+
+    if (isPlaying) return "playing";
+    if (isSub) return "sub";
+    return "benched";
+  };
+
+  const sortedPlayers = useMemo(() => {
+    return [...players].sort((a, b) => {
+      const statusA = getPlayerStatus(a.name, a.teamId);
+      const statusB = getPlayerStatus(b.name, b.teamId);
+      const weight = { "playing": 3, "sub": 2, "benched": 1, null: 0 };
+      return (weight[statusB as keyof typeof weight] || 0) - (weight[statusA as keyof typeof weight] || 0);
+    });
+  }, [players, match.lineups]);
+
+  const selectedPlayers = sortedPlayers.filter((p) => selectedIds.includes(p.id));
   const isFull = selectedIds.length === 12;
 
   const teamACount = selectedPlayers.filter((p) => p.teamId === match.teamAId).length;
@@ -97,7 +116,7 @@ export function SquadBuilder({
     });
   };
 
-  const filteredPlayers = players.filter((p) => {
+  const filteredPlayers = sortedPlayers.filter((p) => {
     if (roleFilter === "ALL") return true;
     return getPlayerCategory(p.role) === roleFilter;
   });
@@ -111,7 +130,14 @@ export function SquadBuilder({
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
-              <h1 className="text-[15px] font-bold text-white">Build Your Squad</h1>
+              <h1 className="text-[15px] font-bold text-white flex items-center gap-2">
+                Build Your Squad
+                {match.lineups && (
+                  <span className="hidden md:flex items-center gap-1 text-[9px] text-green-400 uppercase font-bold tracking-widest bg-green-400/10 px-1.5 py-0.5 rounded border border-green-400/20">
+                    <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div> Lineups Out
+                  </span>
+                )}
+              </h1>
               <p className="text-[11px] text-stone-500 font-medium">
                 {match.teamAShort} vs {match.teamBShort}
               </p>
@@ -161,6 +187,14 @@ export function SquadBuilder({
 
         <div className="flex flex-1 overflow-hidden">
           <div className="flex-1 flex flex-col border-r border-white/[0.04]">
+            
+            {match.lineups && (
+               <div className="md:hidden w-full bg-green-500/10 border-b border-green-500/20 px-4 py-1.5 flex items-center justify-center gap-1.5">
+                 <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse"></div>
+                 <span className="text-[10px] text-green-400 uppercase font-bold tracking-widest">Lineups Announced</span>
+               </div>
+            )}
+
             <div className="p-3 border-b border-white/[0.04] flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
               {roles.map((role) => {
                 const isMissing = role !== "ALL" && roleCounts[role as keyof typeof roleCounts] === 0 && selectedIds.length > 8;
@@ -187,6 +221,9 @@ export function SquadBuilder({
                 {filteredPlayers.map((player) => {
                   const isSelected = selectedIds.includes(player.id);
                   const teamShort = player.teamId === match.teamAId ? match.teamAShort : match.teamBShort;
+                  const status = getPlayerStatus(player.name, player.teamId);
+                  const isBenched = status === "benched";
+
                   const isTeamLimitReached =
                     !isSelected &&
                     ((player.teamId === match.teamAId && teamACount >= 7) ||
@@ -196,15 +233,18 @@ export function SquadBuilder({
                     <div
                       key={player.id}
                       onClick={() => !isTeamLimitReached && togglePlayer(player.id)}
-                      className={`flex items-center justify-between px-4 py-3.5 transition-all duration-150 ${isSelected
-                        ? "bg-orange-500/[0.08]"
-                        : isTeamLimitReached
-                          ? "opacity-35 cursor-not-allowed"
-                          : "hover:bg-white/[0.02] cursor-pointer"
+                      className={`flex items-center justify-between px-4 py-3.5 transition-all duration-150 ${
+                        isSelected
+                          ? "bg-orange-500/[0.08]"
+                          : isTeamLimitReached
+                            ? "opacity-35 cursor-not-allowed"
+                            : isBenched 
+                              ? "opacity-50 hover:opacity-70 cursor-pointer"
+                              : "hover:bg-white/[0.02] cursor-pointer"
                         }`}
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl bg-white/[0.04] border border-white/[0.05] flex items-center justify-center overflow-hidden">
+                        <div className={`w-9 h-9 rounded-xl bg-white/[0.04] border flex items-center justify-center overflow-hidden ${status === 'playing' ? 'border-green-500/30' : 'border-white/[0.05]'}`}>
                           <Image
                             src={`/teams/${teamShort.toLowerCase()}.webp`}
                             alt={teamShort}
@@ -219,15 +259,31 @@ export function SquadBuilder({
                             {captainId === player.id && <span className="bg-orange-500 text-white text-[8px] font-bold px-1 rounded">C</span>}
                             {viceCaptainId === player.id && <span className="bg-sky-500 text-white text-[8px] font-bold px-1 rounded">VC</span>}
                           </h3>
-                          <div className="flex items-center gap-2 mt-0.5">
-                            <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-sky-400" : "text-emerald-400"
-                              }`}>
+                          
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className={`text-[9px] font-bold uppercase ${player.teamId === match.teamAId ? "text-sky-400" : "text-emerald-400"}`}>
                               {teamShort}
                             </span>
                             <span className="w-0.5 h-0.5 rounded-full bg-stone-700" />
-                            <span className="text-[10px] font-bold text-stone-600 uppercase">
+                            <span className="text-[9px] font-bold text-stone-500 uppercase">
                               {getPlayerCategory(player.role)}
                             </span>
+
+                            {status === "playing" && (
+                              <span className="ml-1 text-[8px] text-green-400 bg-green-400/10 px-1 rounded font-bold uppercase border border-green-400/20">
+                                Playing
+                              </span>
+                            )}
+                            {status === "sub" && (
+                              <span className="ml-1 text-[8px] text-yellow-400 bg-yellow-400/10 px-1 rounded font-bold uppercase border border-yellow-400/20">
+                                Sub
+                              </span>
+                            )}
+                            {status === "benched" && (
+                              <span className="ml-1 text-[8px] text-red-400/70 bg-red-400/10 px-1 rounded font-bold uppercase border border-red-400/20">
+                                Not Playing
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -276,8 +332,7 @@ export function SquadBuilder({
                         <div className="flex items-center gap-2 mt-0.5">
                           <span className="text-[10px] font-bold uppercase text-stone-600">{getPlayerCategory(player.role)}</span>
                           <span className="w-0.5 h-0.5 rounded-full bg-stone-700" />
-                          <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-sky-400/70" : "text-emerald-400/70"
-                            }`}>
+                          <span className={`text-[10px] font-bold uppercase ${player.teamId === match.teamAId ? "text-sky-400/70" : "text-emerald-400/70"}`}>
                             {player.teamId === match.teamAId ? match.teamAShort : match.teamBShort}
                           </span>
                         </div>
