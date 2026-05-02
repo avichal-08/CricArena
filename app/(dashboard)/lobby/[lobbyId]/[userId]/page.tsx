@@ -100,10 +100,10 @@ export default async function AllEntries({
                           {isToday
                             ? "Today"
                             : date.toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                              })}
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            })}
                         </span>
                         {isToday && (
                           <span className="flex items-center gap-1 ml-1">
@@ -116,7 +116,7 @@ export default async function AllEntries({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {entry.score > 0 && (
+                    {entry.score && entry.score > 0 && (
                       <div className="text-right">
                         <span className="text-[15px] font-black font-mono text-white block leading-tight">
                           {entry.score}
