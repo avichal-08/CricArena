@@ -1,0 +1,1 @@
+ALTER TABLE "match" ADD COLUMN "current_summary" jsonb;

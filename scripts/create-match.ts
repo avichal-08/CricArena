@@ -1,7 +1,11 @@
 import { db } from '@repo/db';
 import { eq } from 'drizzle-orm';
 import { matches, teams, tournaments } from '@repo/db/schema';
-import scheduleData from '@/data/schedule.json';
+// import scheduleData from '@/data/schedule.json';
+
+const scheduleData =[
+    { "teamA": "SRH", "teamB": "RR", "time": "2026-05-02T05:57:00Z" }
+]
 
 const TOURNAMENT_NAME = 'Indian Premier League 2026';
 

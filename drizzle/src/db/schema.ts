@@ -118,6 +118,7 @@ export const matches = pgTable(
       .notNull()
       .references(() => teams.id, { onDelete: 'cascade' }),
     scorecard: jsonb("scorecard"),
+    currentSummary: jsonb("current_summary"),
     isAbandoned: boolean('is_abandoned').default(false).notNull(),
     startTime: timestamp('start_time', { mode: 'date' }).notNull(),
   },

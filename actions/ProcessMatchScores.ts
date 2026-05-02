@@ -17,15 +17,16 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
   const [currentUser] = await db.select().from(users).where(eq(users.id, session.user.id));
   if (currentUser?.role !== "admin") throw new Error("Forbidden: Admin clearance required.");
 
-  let scorecard: ScorecardPlayer[];
+  let fullScoreData;
   try {
-    scorecard = JSON.parse(scorecardJson);
-    if (!Array.isArray(scorecard)) throw new Error("JSON must be an array.");
+    fullScoreData = JSON.parse(scorecardJson);
   } catch (e) {
     throw new Error("Invalid JSON format. Check syntax.");
   }
 
-  await db.update(matches).set({ scorecard }).where(eq(matches.id, matchId));
+  const scorecard: ScorecardPlayer[] = fullScoreData.playerStats;
+
+  await db.update(matches).set({ scorecard: fullScoreData }).where(eq(matches.id, matchId));
 
   const entries = await db.select().from(matchEntries).where(eq(matchEntries.matchId, matchId));
   if (entries.length === 0) throw new Error("No squads were submitted for this match.");
@@ -100,16 +101,16 @@ export async function processMatchScores(matchId: string, scorecardJson: string)
       }
 
       userTotalScore += playerPoints;
-      userBreakdown[playerId] = playerPoints; 
+      userBreakdown[playerId] = playerPoints;
     }
 
     await db.update(matchEntries)
-      .set({ 
+      .set({
         score: userTotalScore,
-        pointsBreakdown: userBreakdown 
+        pointsBreakdown: userBreakdown
       })
       .where(eq(matchEntries.id, entry.id));
-      
+
     processedCount++;
   }
 
